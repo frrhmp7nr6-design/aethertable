@@ -1,6 +1,4 @@
-
-
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -81,13 +79,14 @@
     /* SWIFT-STYLE GAMEBOARD */
     #game-board { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
     .player-bar {
-      height: 66px; padding: 0 18px; display: flex; align-items: center; justify-content: space-between;
+      height: 64px; padding: 0 18px; display: flex; align-items: center; justify-content: space-between;
       position: relative; z-index: 10;
     }
     .bar-left, .bar-right { display: flex; align-items: center; gap: 10px; }
     .info-pill {
       background: rgba(0,0,0,0.42); border: 1px solid rgba(255,255,255,0.12);
       padding: 6px 11px; border-radius: 999px; font-size: 13px; display: flex; align-items: center; gap: 8px;
+      color: var(--text);
     }
     .opp-hand-backs { display: flex; margin-left: 4px; }
     .card-back-mini {
@@ -102,7 +101,6 @@
     }
     .life-die.human { background: var(--teal); color: #042f2e; }
     .life-die.opp { background: var(--crimson); color: #fff; }
-    .life-die.targetable { outline: 3px solid #facc15; animation: pulse 1s infinite; }
 
     /* BATTLEFIELD & 3D PERSPECTIVE TOGGLE */
     .table-stage {
@@ -118,25 +116,18 @@
       overflow-x: auto; position: relative;
     }
 
-    /* CENTER BAR (Turn, Step, Stack, 3-Line Log, Action Button) */
+    /* CENTER BAR */
     .center-bar {
       margin: 0 12px; padding: 7px 12px; border-radius: 12px;
       background: rgba(0,0,0,0.42); border: 1px solid rgba(255,255,255,0.1);
-      display: flex; align-items: center; gap: 12px; z-index: 8; min-height: 52px;
+      display: flex; align-items: center; gap: 12px; z-index: 8; min-height: 50px;
     }
     .turn-box { width: 155px; flex-shrink: 0; }
     .turn-box .sub { font-size: 11px; color: var(--muted); }
     .turn-box .step { font-size: 14px; font-weight: 800; }
-    .stack-box {
-      flex: 1; max-width: 260px; display: flex; align-items: center; gap: 6px;
-      overflow-x: auto; font-size: 12px;
-    }
-    .stack-pill {
-      background: rgba(147,51,234,0.75); padding: 4px 9px; border-radius: 6px;
-      font-weight: 700; white-space: nowrap;
-    }
+    .stack-box { flex: 1; max-width: 240px; display: flex; align-items: center; gap: 6px; overflow-x: auto; font-size: 12px; }
     .log-preview {
-      flex: 1; max-width: 290px; font-size: 11px; color: #d1d5db; line-height: 1.25;
+      flex: 1; max-width: 300px; font-size: 11px; color: #d1d5db; line-height: 1.25;
       cursor: pointer; overflow: hidden;
     }
     .log-preview div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -145,34 +136,44 @@
       font-size: 13px; font-weight: 700; white-space: nowrap;
     }
     .action-btn.attack { background: #dc2626; }
-    .action-btn.block { background: #d97706; }
 
-    /* CARDS & HAND FAN */
+    /* CARDS WITH SCRYFALL ARTWORK */
     .perm-card {
-      width: 82px; height: 114px; border-radius: 7px; flex-shrink: 0;
-      background: linear-gradient(155deg, #273244, #141a24); border: 2px solid #4b5563;
-      padding: 5px; display: flex; flex-direction: column; justify-content: space-between;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.5); transition: transform 0.16s ease; position: relative;
+      width: 84px; height: 116px; border-radius: 8px; flex-shrink: 0;
+      background: #141a24; border: 2px solid #4b5563;
+      overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.55); transition: transform 0.16s ease; position: relative;
     }
     .perm-card.tapped { transform: rotate(90deg); margin: 0 16px; border-color: var(--accent); }
     .perm-card.attacking { border-color: #ef4444; box-shadow: 0 0 14px rgba(239,68,68,0.65); }
-    .perm-card.blocking { border-color: #3b82f6; box-shadow: 0 0 14px rgba(59,130,246,0.65); }
     .hand-fan {
-      height: 126px; display: flex; align-items: flex-end; justify-content: center;
+      height: 132px; display: flex; align-items: flex-end; justify-content: center;
       gap: 6px; padding: 6px 14px 4px; overflow-x: auto; z-index: 12;
     }
     .hand-card {
-      width: 88px; height: 122px; border-radius: 7px; flex-shrink: 0;
-      background: linear-gradient(155deg, #2b3648, #161d29); border: 2px solid #475569;
-      padding: 6px; display: flex; flex-direction: column; justify-content: space-between;
-      transition: transform 0.14s ease;
+      width: 92px; height: 126px; border-radius: 8px; flex-shrink: 0;
+      background: #161d29; border: 2px solid #475569;
+      overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;
+      transition: transform 0.14s ease; position: relative;
     }
     .hand-card.playable { border-color: var(--ok); }
-    .hand-card.selected { border-color: var(--accent); transform: translateY(-12px); }
-    .c-head { display: flex; justify-content: space-between; gap: 3px; font-size: 10px; font-weight: 800; }
-    .c-cost { background: rgba(0,0,0,0.5); padding: 1px 4px; border-radius: 4px; color: var(--accent); }
-    .c-text { font-size: 9px; color: #cbd5e1; line-height: 1.15; overflow: hidden; }
-    .c-pt { align-self: flex-end; background: rgba(0,0,0,0.65); padding: 1px 5px; border-radius: 4px; font-size: 10px; font-weight: 800; }
+    .card-art-bg {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; z-index: 0; pointer-events: none;
+    }
+    .card-overlay-top {
+      position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 3px;
+      padding: 4px 5px; font-size: 10px; font-weight: 800;
+      background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 100%);
+    }
+    .card-overlay-bot {
+      position: relative; z-index: 1; padding: 4px 5px;
+      background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.45) 100%);
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .c-cost { background: rgba(245,158,11,0.22); border: 1px solid rgba(245,158,11,0.5); padding: 0 4px; border-radius: 4px; color: var(--accent); }
+    .c-text { font-size: 8.5px; color: #e5e7eb; line-height: 1.15; max-height: 28px; overflow: hidden; }
+    .c-pt { align-self: flex-end; background: rgba(0,0,0,0.85); border: 1px solid #475569; padding: 1px 5px; border-radius: 4px; font-size: 10px; font-weight: 800; }
 
     /* MODALS / SHEETS */
     .modal-backdrop {
@@ -183,7 +184,6 @@
       width: 100%; max-width: 520px; max-height: 82dvh; overflow-y: auto;
       background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 20px;
     }
-    @keyframes pulse { 0%,100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.06); } }
   </style>
 </head>
 <body>
@@ -247,9 +247,8 @@
     </div>
   </div>
 
-  <!-- SWIFT-PORTED GAMEBOARD -->
+  <!-- GAMEBOARD -->
   <div id="game-board" class="hidden">
-    <!-- Opponent Top Bar -->
     <div class="player-bar">
       <div class="bar-left">
         <div class="info-pill">
@@ -270,7 +269,6 @@
       </div>
     </div>
 
-    <!-- Table Stage (Battlefields + CenterBar) -->
     <div class="table-stage mode-3d" id="table-stage">
       <div class="bf-row" id="opp-bf"></div>
 
@@ -289,7 +287,6 @@
       <div class="bf-row" id="human-bf"></div>
     </div>
 
-    <!-- Human Bottom Bar -->
     <div class="player-bar">
       <div class="bar-left">
         <div class="info-pill">
@@ -303,21 +300,18 @@
         <span id="human-life">20</span>
       </div>
       <div class="bar-right">
-        <span class="info-pill" id="mana-pool-pill">⚡ Mana: <strong id="avail-mana">0</strong></span>
+        <span class="info-pill">⚡ Mana: <strong id="avail-mana">0</strong></span>
       </div>
     </div>
 
-    <!-- Hand Fan -->
     <div class="hand-fan" id="hand-fan"></div>
   </div>
 
-  <!-- MODAL SHEET CONTAINER -->
   <div id="modal-backdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeModal()">
     <div class="sheet-box" id="modal-content"></div>
   </div>
 
   <script>
-    // PASTE YOUR SUPABASE CREDENTIALS HERE
     const SUPABASE_URL = "https://fwpnbbkyhugzppclsgbl.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_QU5rvS7F-VfmocfgP1SqKw_gymqv9bQ";
     const sb = SUPABASE_URL.startsWith("http") ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
@@ -340,18 +334,43 @@
       ],
       green: [
         { name: "Forest", type: "Land", cost: 0, text: "Tap: Add {G}.", isLand: true },
-        { name: "Llanowar Elves", type: "Creature — Elf", cost: 1, power: 1, toughness: 1, text: "Tap: Add {G}." },
-        { name: "Giant Growth", type: "Instant", cost: 1, heal: 3, text: "Target creature gets +3/+3; gain 3 life." },
+        { name: "Llanowar Elves", type: "Creature — Elf Druid", cost: 1, power: 1, toughness: 1, text: "Tap: Add {G}." },
+        { name: "Giant Growth", type: "Instant", cost: 1, heal: 3, text: "Gain 3 life." },
         { name: "Craw Wurm", type: "Creature — Wurm", cost: 5, power: 6, toughness: 4, text: "Trample" }
       ]
     };
+
+    // SCRYFALL ART CACHE
+    const artCache = JSON.parse(localStorage.getItem("at_scryfall_art") || "{}");
+    const artInFlight = new Set();
+
+    async function ensureCardArt(cardName) {
+      if (!cardName || artCache[cardName] || artInFlight.has(cardName)) return;
+      artInFlight.add(cardName);
+      try {
+        const res = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`);
+        if (res.ok) {
+          const data = await res.json();
+          const uris = data.image_uris || data.card_faces?.[0]?.image_uris;
+          const url = uris?.art_crop || uris?.normal;
+          if (url) {
+            artCache[cardName] = url;
+            localStorage.setItem("at_scryfall_art", JSON.stringify(artCache));
+            if (game) renderBoard();
+          }
+        }
+      } catch (_) {
+        // Ignore network errors silently
+      } finally {
+        artInFlight.delete(cardName);
+      }
+    }
 
     let authMode = "login";
     let userProfile = { id: null, name: "Planeswalker", email: "", gold: 250, wins: 0, use3D: true };
     let liveRoomCode = null;
     let isRoomHost = true;
     let roomChannel = null;
-
     let game = null;
 
     function buildDeck(colorKey) {
@@ -359,6 +378,7 @@
       const cards = [];
       for (let i = 0; i < 20; i++) {
         const template = i < 8 ? base[0] : base[(i % (base.length - 1)) + 1];
+        ensureCardArt(template.name);
         cards.push({ ...template, id: "c-" + i + "-" + Math.random().toString(36).slice(2, 6) });
       }
       return cards.sort(() => Math.random() - 0.5);
@@ -369,13 +389,8 @@
       const oDeck = buildDeck("white");
       return {
         turn: 1,
-        stepIndex: 3, // Main Phase 1
-        active: "human",
-        decision: "normal", // normal | attackers | blockers | target
-        pendingSpell: null,
-        pendingAttackers: [],
+        stepIndex: 3,
         use3D: userProfile.use3D,
-        stack: [],
         log: [`Match started: ${humanName} vs ${oppName}.`],
         human: { name: humanName, life: 20, hand: hDeck.slice(0, 7), library: hDeck.slice(7), bf: [], gy: [], landPlayed: false },
         opp: { name: oppName, life: 20, hand: oDeck.slice(0, 7), library: oDeck.slice(7), bf: [], gy: [], landPlayed: false }
@@ -596,7 +611,6 @@
         game.stepIndex = 0;
         game.turn++;
         if (!liveRoomCode) {
-          // Simple AI turn for Rival match
           runAITurn();
           game.stepIndex = 3;
           me.bf.forEach(c => c.tapped = false);
@@ -677,29 +691,38 @@
       }
 
       document.getElementById("log-preview").innerHTML = game.log.slice(-3).map(l => `<div>${l}</div>`).join("");
-
       document.getElementById("opp-bf").innerHTML = foe.bf.map(c => renderPermHTML(c, false)).join("");
       document.getElementById("human-bf").innerHTML = me.bf.map(c => renderPermHTML(c, true)).join("");
 
       const mana = availableMana(me);
       document.getElementById("hand-fan").innerHTML = me.hand.map(c => {
+        ensureCardArt(c.name);
+        const artUrl = artCache[c.name];
         const canPlay = c.isLand ? !me.landPlayed : c.cost <= mana;
         return `
           <div class="hand-card ${canPlay ? 'playable' : ''}" onclick="tapHandCard('${c.id}')">
-            <div class="c-head"><span>${c.name}</span><span class="c-cost">${c.cost || ''}</span></div>
-            <div class="c-text">${c.text || c.type}</div>
-            ${c.power != null ? `<div class="c-pt">${c.power}/${c.toughness}</div>` : ''}
+            ${artUrl ? `<img class="card-art-bg" src="${artUrl}" alt="${c.name}" />` : ''}
+            <div class="card-overlay-top"><span>${c.name}</span><span class="c-cost">${c.cost || ''}</span></div>
+            <div class="card-overlay-bot">
+              <div class="c-text">${c.text || c.type}</div>
+              ${c.power != null ? `<div class="c-pt">${c.power}/${c.toughness}</div>` : ''}
+            </div>
           </div>
         `;
       }).join("");
     }
 
     function renderPermHTML(c, interactive) {
+      ensureCardArt(c.name);
+      const artUrl = artCache[c.name];
       return `
         <div class="perm-card ${c.tapped ? 'tapped' : ''} ${c.attacking ? 'attacking' : ''}" ${interactive ? `onclick="tapPermanent('${c.id}')"` : ''}>
-          <div class="c-head"><span>${c.name}</span></div>
-          <div class="c-text">${c.type}</div>
-          ${c.power != null ? `<div class="c-pt">${c.power}/${c.toughness}</div>` : ''}
+          ${artUrl ? `<img class="card-art-bg" src="${artUrl}" alt="${c.name}" />` : ''}
+          <div class="card-overlay-top"><span>${c.name}</span></div>
+          <div class="card-overlay-bot">
+            <div class="c-text">${c.type}</div>
+            ${c.power != null ? `<div class="c-pt">${c.power}/${c.toughness}</div>` : ''}
+          </div>
         </div>
       `;
     }
