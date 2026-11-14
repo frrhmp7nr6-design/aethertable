@@ -1,1540 +1,600 @@
-<!-- ... existing code ... -->
-  <!-- ===================================================================== -->
-  <!-- VIEW 1: MINIMALIST HOME / LOBBY ("JUST A WALL OR A BOX")              -->
-  <!-- ===================================================================== -->
-  <section id="home-view" class="flex-1 w-full h-full overflow-y-auto flex items-center justify-center p-4 sm:p-8 bg-obsidian-950 relative">
-    <!-- Subtle ambient corner glow -->
-    <div class="absolute inset-0 pointer-events-none overflow-hidden">
-      <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-amber-500/5 blur-3xl"></div>
-      <div class="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-sky-500/5 blur-3xl"></div>
-    </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="AetherTable" />
+  <title>AetherTable MTG</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --panel: #141821;
+      --panel-2: #1c2230;
+      --border: #2a3346;
+      --accent: #f59e0b;
+      --accent-2: #3b82f6;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --danger: #ef4444;
+      --ok: #10b981;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+    html, body {
+      margin: 0; padding: 0; width: 100%; height: 100dvh;
+      overflow: hidden; position: fixed; overscroll-behavior: none;
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+    input, select, textarea { user-select: text; font-size: 16px !important; }
+    button { cursor: pointer; font-family: inherit; border: none; border-radius: 10px; font-weight: 600; transition: transform 0.08s, opacity 0.15s; }
+    button:active { transform: scale(0.97); }
+    .hidden { display: none !important; }
 
-    <!-- THE WALL / BOX CONTAINER -->
-    <div class="w-full max-w-4xl bg-obsidian-900 border border-slate-800/90 rounded-2xl shadow-2xl overflow-hidden z-10">
-      <!-- Top Box Bar -->
-      <div class="px-6 py-4 bg-obsidian-850 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/20 border border-amber-300/30">
-            <svg class="w-6 h-6 text-obsidian-950" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2L4.5 9.5L8 21H16L19.5 9.5L12 2ZM12 6.2L16.1 10.3L14.1 17.5H9.9L7.9 10.3L12 6.2Z"/>
-            </svg>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <h1 class="font-display font-bold text-lg sm:text-xl tracking-wide text-white">AETHERTABLE</h1>
-              <span id="cloud-sync-badge" class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">Connecting Cloud...</span>
-            </div>
-            <p class="text-xs text-slate-400">Real-Time 2-Player MTG Tabletop &amp; PWA Sandbox</p>
-          </div>
-        </div>
+    /* HOME WALL / BOX */
+    #home-wall {
+      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(circle at top, #182032 0%, #0b0d12 70%);
+      padding: 20px;
+    }
+    .wall-box {
+      width: 100%; max-width: 880px; background: var(--panel);
+      border: 1px solid var(--border); border-radius: 20px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.65);
+      display: grid; grid-template-columns: 340px 1fr; overflow: hidden;
+      min-height: 480px;
+    }
+    .auth-col {
+      padding: 28px; background: var(--panel-2); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .brand { font-size: 22px; font-weight: 800; letter-spacing: 0.4px; display: flex; align-items: center; gap: 10px; }
+    .brand span { color: var(--accent); }
+    .tabs { display: flex; gap: 6px; background: var(--bg); padding: 4px; border-radius: 10px; margin: 16px 0; }
+    .tab-btn { flex: 1; padding: 8px; background: transparent; color: var(--muted); font-size: 14px; }
+    .tab-btn.active { background: var(--panel-2); color: var(--text); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .field label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field input, .field select {
+      background: var(--bg); border: 1px solid var(--border); color: var(--text);
+      padding: 11px 12px; border-radius: 10px; outline: none;
+    }
+    .field input:focus { border-color: var(--accent); }
+    .btn-primary { background: var(--accent); color: #111827; padding: 12px; width: 100%; font-size: 15px; }
+    .btn-secondary { background: var(--panel); color: var(--text); border: 1px solid var(--border); padding: 10px 14px; font-size: 14px; }
+    .status-msg { font-size: 13px; min-height: 18px; margin-top: 8px; color: var(--accent); }
 
-        <div class="flex items-center gap-2">
-          <button id="btn-google-signin" onclick="signInWithGoogleAccount()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/15 border border-white/15 text-white transition active:scale-95 flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81Z"/></svg>
-            <span id="auth-user-label">Sign In (Google)</span>
-          </button>
-          <button onclick="openModal('modal-deckbuilder')" class="px-3 py-2 rounded-xl text-xs font-semibold bg-obsidian-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition active:scale-95">
-            Decks / Scryfall
-          </button>
-          <button onclick="openModal('modal-deploy')" class="px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 transition active:scale-95">
-            iPad Guide
-          </button>
-        </div>
-      </div>
+    .lobby-col { padding: 28px; display: flex; flex-direction: column; gap: 16px; }
+    .lobby-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .create-bar { display: flex; gap: 8px; }
+    .room-list {
+      flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+      padding-right: 4px;
+    }
+    .room-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .room-meta { display: flex; flex-direction: column; gap: 4px; }
+    .room-code { font-weight: 800; font-size: 16px; color: var(--accent); letter-spacing: 1px; }
+    .room-players { font-size: 13px; color: var(--muted); }
+    .badge { font-size: 11px; padding: 3px 8px; border-radius: 999px; background: rgba(16,185,129,0.15); color: var(--ok); font-weight: 700; }
+    .badge.full { background: rgba(239,68,68,0.15); color: var(--danger); }
 
-      <!-- Main Box Grid: Left = Enter Table Box | Right = Live Table Wall -->
-      <div class="grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-slate-800">
-
-        <!-- LEFT BOX: CREATE / JOIN TABLE -->
-        <div class="md:col-span-7 p-6 space-y-5">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-xs font-mono uppercase tracking-wider text-amber-400 font-semibold">Enter Table Box</h2>
-              <p class="text-xs text-slate-400 mt-0.5">Log in with a handle and sit in Seat 1 or Seat 2 simultaneously.</p>
-            </div>
-            <span id="my-uid-pill" class="text-[10px] font-mono text-slate-500">ID: ...</span>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-1">Planeswalker Login Name</label>
-              <input id="lobby-player-name" type="text" placeholder="Enter your name" class="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500" />
-            </div>
-            <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-1">Table / Room Code</label>
-              <div class="flex gap-1.5">
-                <input id="lobby-room-code" type="text" maxlength="12" class="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-mono uppercase text-amber-300 focus:outline-none focus:border-amber-500" />
-                <button onclick="randomizeRoomCode()" class="px-3 rounded-xl bg-obsidian-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-mono" title="New Code">↻</button>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div class="flex items-center justify-between mb-1">
-              <label class="block text-[11px] font-medium text-slate-400">Select Deck</label>
-              <button onclick="openModal('modal-deckbuilder')" class="text-[11px] text-amber-400 hover:underline">+ Import Custom List</button>
-            </div>
-            <select id="lobby-deck-select" class="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
-              <option value="mono_red">Mono-Red Burn &amp; Aggro (60 Cards)</option>
-              <option value="azorius_control">Azorius Sky Control (60 Cards)</option>
-              <option value="golgari_midrange">Golgari Graveyard Midrange (60 Cards)</option>
-              <option value="eldrazi_ramp">Eldrazi &amp; Artifact Ramp (Commander / 60)</option>
-            </select>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3 pt-1">
-            <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-1">Starting Life</label>
-              <select id="lobby-starting-life" class="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
-                <option value="20">20 Life (Standard / Modern)</option>
-                <option value="40">40 Life (Commander / EDH)</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-1">Seat Assignment</label>
-              <select id="lobby-seat" class="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
-                <option value="auto">Auto-Assign Open Seat</option>
-                <option value="seat1">Seat 1 (Host)</option>
-                <option value="seat2">Seat 2 (Challenger)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="pt-2 flex flex-col sm:flex-row gap-2.5">
-            <button onclick="enterTable(false)" class="flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-obsidian-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition active:scale-95 flex items-center justify-center gap-2">
-              <span>Login &amp; Enter Live Table</span>
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-            </button>
-            <button onclick="enterTable(true)" class="py-3 px-4 rounded-xl bg-obsidian-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs transition active:scale-95">
-              Solo Goldfish
-            </button>
-          </div>
-        </div>
-
-        <!-- RIGHT WALL: LIVE MULTI-USER TABLES WALL -->
-        <div class="md:col-span-5 p-6 bg-obsidian-950/60 flex flex-col justify-between space-y-4">
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <h2 class="text-xs font-mono uppercase tracking-wider text-slate-300 font-semibold">Live Table Wall</h2>
-              <span id="wall-live-indicator" class="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Real-Time Lobby
-              </span>
-            </div>
-            <p class="text-[11px] text-slate-400 leading-relaxed">
-              Tables created by any logged-in player appear here live. Tap an open seat to play at the same time.
-            </p>
-
-            <!-- Live Wall Slots -->
-            <div id="table-wall-list" class="space-y-2 max-h-56 overflow-y-auto pr-1 pt-1">
-              <div class="text-xs text-slate-500 py-4 text-center font-mono">Loading live tables...</div>
-            </div>
-          </div>
-
-          <!-- Quick Join Code Box -->
-          <div class="pt-3 border-t border-slate-800/80 space-y-2">
-            <span class="block text-[11px] font-medium text-slate-400">Join by Room Code or Invite URL</span>
-            <div class="flex gap-1.5">
-              <input id="wall-invite-paste" type="text" placeholder="Paste #room=... link or code" class="flex-1 bg-obsidian-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-500" />
-              <button onclick="joinFromWallInput()" class="px-3 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-obsidian-950 font-bold text-xs transition active:scale-95">Join</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================================================================== -->
-  <!-- VIEW 2: FULL MTG MULTIPLAYER TABLETOP ARENA                           -->
-  <!-- ===================================================================== -->
-  <section id="table-view" class="hidden flex-1 w-full h-full flex flex-col overflow-hidden bg-obsidian-950">
-
-    <!-- TOP BAR: OPPONENT HUD, TURN PHASES & TABLE CONTROLS -->
-    <header class="bg-obsidian-900 border-b border-slate-800 px-3 py-1.5 flex flex-wrap items-center justify-between gap-2 shrink-0 z-30">
-      <!-- Left: Exit to Wall + Room Badge + Opponent Stats -->
-      <div class="flex items-center gap-2">
-        <button onclick="leaveTable()" class="px-2.5 py-1.5 rounded-xl bg-obsidian-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 flex items-center gap-1 active:scale-95">
-          <span>&larr; Wall</span>
-        </button>
-
-        <div class="px-2.5 py-1 rounded-xl bg-obsidian-950 border border-slate-800 flex items-center gap-2 text-xs font-mono">
-          <span class="text-slate-400">Room:</span>
-          <strong id="hud-room-code" class="text-amber-400">AETHER</strong>
-          <span id="peer-connection-dot" class="w-2 h-2 rounded-full bg-amber-400" title="Connection Status"></span>
-        </div>
-
-        <!-- Opponent Summary Pill -->
-        <div class="flex items-center gap-2 px-3 py-1 rounded-xl bg-obsidian-850 border border-slate-800 text-xs">
-          <span id="opp-name-label" class="font-semibold text-rose-300 truncate max-w-[110px]">Waiting...</span>
-          <span class="px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 font-mono font-bold">♥ <span id="opp-life-val">20</span></span>
-          <span class="hidden md:inline text-slate-400 font-mono text-[11px]">Hand: <strong id="opp-hand-count" class="text-white">0</strong></span>
-          <span class="hidden md:inline text-slate-400 font-mono text-[11px]">Lib: <strong id="opp-lib-count" class="text-white">0</strong></span>
-        </div>
-      </div>
-
-      <!-- Center: Active Turn Indicator + Interactive Turn Phase Strip -->
-      <div class="flex items-center gap-1 bg-obsidian-950 p-1 rounded-xl border border-slate-800 overflow-x-auto">
-        <span id="active-turn-badge" class="px-2 py-1 rounded-lg text-[10px] font-mono uppercase font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mr-1">
-          Your Turn
-        </span>
-        <button onclick="setPhase(0)" data-phase="0" class="phase-btn px-2 py-1 rounded-lg text-[11px] font-semibold bg-amber-500 text-obsidian-950">Untap</button>
-        <button onclick="setPhase(1)" data-phase="1" class="phase-btn px-2 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-white">Upkeep</button>
-        <button onclick="setPhase(2)" data-phase="2" class="phase-btn px-2 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-white">Draw</button>
-        <button onclick="setPhase(3)" data-phase="3" class="phase-btn px-2 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-white">Main 1</button>
-        <button onclick="setPhase(4)" data-phase="4" class="phase-btn px-2 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-white">Combat</button>
-        <button onclick="setPhase(5)" data-phase="5" class="phase-btn px-2 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-white">Main 2</button>
-        <button onclick="setPhase(6)" data-phase="6" class="phase-btn px-2 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-white">End</button>
-        <button onclick="passTurn()" class="ml-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 active:scale-95">Pass Turn</button>
-      </div>
-
-      <!-- Right: Invite / Share, Dice, Coin -->
-      <div class="flex items-center gap-1.5">
-        <button onclick="rollDice(20)" class="px-2.5 py-1.5 rounded-xl bg-obsidian-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono text-slate-200 active:scale-95" title="Roll d20">d20</button>
-        <button onclick="flipCoin()" class="px-2.5 py-1.5 rounded-xl bg-obsidian-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono text-slate-200 active:scale-95" title="Flip Coin">Coin</button>
-        <button onclick="openInviteModal()" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-500/20 active:scale-95 flex items-center gap-1.5">
-          <span>Invite Player</span>
-        </button>
-      </div>
-    </header>
-<!-- ... existing code ... -->
-          <!-- FLOATING CARD ACTION / INSPECTOR BAR (Appears when a card is selected) -->
-          <div id="card-action-bar" class="hidden absolute top-3 left-3 z-40 bg-obsidian-900/95 backdrop-blur-md border border-amber-500/40 rounded-2xl p-3 shadow-2xl w-72 space-y-2.5">
-            <div class="flex items-start justify-between gap-2 border-b border-slate-800 pb-2">
-              <div>
-                <div class="flex items-center gap-1.5">
-                  <h4 id="sel-card-name" class="font-bold text-xs text-white">Card Name</h4>
-                  <span id="sel-card-cost" class="text-[10px] font-mono text-amber-300"></span>
-                </div>
-                <p id="sel-card-type" class="text-[10px] text-slate-400">Creature — Human</p>
-              </div>
-              <button onclick="closeCardInspector()" class="text-slate-400 hover:text-white text-xs px-1.5 py-0.5 rounded bg-obsidian-800">✕</button>
-            </div>
-
-            <p id="sel-card-text" class="text-[11px] text-slate-300 leading-snug bg-obsidian-950/80 p-2 rounded-xl border border-slate-800/80 max-h-24 overflow-y-auto">
-              Rules text...
-            </p>
-
-            <!-- Battlefield-only controls -->
-            <div id="sel-bf-controls" class="space-y-2">
-              <div class="flex items-center justify-between text-xs">
-                <span class="text-slate-400 text-[11px]">+1/+1 Counters:</span>
-                <div class="flex items-center gap-1.5">
-                  <button onclick="modifySelectedCounter(-1)" class="w-7 h-7 rounded-lg bg-obsidian-800 border border-slate-700 font-bold text-xs active:scale-95">-</button>
-                  <span id="sel-card-counters" class="font-mono font-bold w-6 text-center text-amber-300">0</span>
-                  <button onclick="modifySelectedCounter(1)" class="w-7 h-7 rounded-lg bg-obsidian-800 border border-slate-700 font-bold text-xs active:scale-95">+</button>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2 gap-1.5">
-                <button onclick="toggleSelectedTap()" class="py-1.5 px-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[11px] font-semibold active:scale-95">Tap / Untap</button>
-                <button onclick="moveSelectedTo('hand')" class="py-1.5 px-2 rounded-xl bg-obsidian-800 border border-slate-700 text-slate-200 text-[11px] active:scale-95">To Hand</button>
-                <button onclick="moveSelectedTo('graveyard')" class="py-1.5 px-2 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 text-[11px] active:scale-95">To Graveyard</button>
-                <button onclick="moveSelectedTo('exile')" class="py-1.5 px-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-[11px] active:scale-95">Exile</button>
-              </div>
-            </div>
-
-            <!-- Hand-only controls -->
-            <div id="sel-hand-controls" class="hidden grid grid-cols-2 gap-1.5">
-              <button onclick="playSelectedFromHand()" class="col-span-2 py-2 px-3 rounded-xl bg-emerald-500 text-obsidian-950 font-bold text-xs active:scale-95">Cast / Play to Battlefield</button>
-              <button onclick="moveSelectedTo('graveyard')" class="py-1.5 px-2 rounded-xl bg-obsidian-800 border border-slate-700 text-slate-300 text-[11px]">Discard</button>
-              <button onclick="moveSelectedTo('exile')" class="py-1.5 px-2 rounded-xl bg-obsidian-800 border border-slate-700 text-slate-300 text-[11px]">Exile</button>
-            </div>
-
-            <!-- Opponent Card Read-Only Footer -->
-            <div id="sel-opp-controls" class="hidden text-[10px] font-mono text-rose-300 text-center pt-1 border-t border-slate-800">
-              Opponent's Permanent (Read-Only Inspect)
-            </div>
-          </div>
-        </div>
-<!-- ... existing code ... -->
-  <!-- ===================================================================== -->
-  <!-- MODALS (INVITE/P2P, ZONES, TOKENS, DECKBUILDER, IPAD DEPLOY GUIDE)    -->
-  <!-- ===================================================================== -->
-
-  <!-- 1. SHARE / MULTI-USER INVITE MODAL -->
-  <div id="modal-invite" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-obsidian-900 border border-slate-700 rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+    /* TABLETOP */
+    #table-view { width: 100%; height: 100%; display: flex; flex-direction: column; }
+    .hud-top {
+      height: 52px; background: var(--panel); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 14px; gap: 10px;
+    }
+    .hud-group { display: flex; align-items: center; gap: 8px; }
+    .pill { background: var(--bg); border: 1px solid var(--border); padding: 6px 10px; border-radius: 10px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .life-btn { width: 26px; height: 26px; border-radius: 6px; background: var(--panel-2); color: var(--text); font-size: 16px; }
+    .battlefield-wrap { flex: 1; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+    .zone {
+      flex: 1; position: relative; border-bottom: 1px dashed var(--border);
+      background: radial-gradient(circle at center, #131824 0%, #0d1017 100%);
+    }
+    .zone.opp { background: radial-gradient(circle at center, #18131d 0%, #0d1017 100%); }
+    .zone-label {
+      position: absolute; top: 8px; left: 12px; font-size: 11px; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--muted); pointer-events: none; opacity: 0.7;
+    }
+    .card {
+      position: absolute; width: 86px; height: 120px; border-radius: 8px;
+      background: linear-gradient(145deg, #262f42, #171c28); border: 2px solid #475569;
+      padding: 6px; display: flex; flex-direction: column; justify-content: space-between;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.55); touch-action: none;
+      transition: transform 0.15s ease;
+    }
+    .card.tapped { transform: rotate(90deg); border-color: var(--accent); }
+    .card-name { font-size: 11px; font-weight: 700; line-height: 1.15; overflow: hidden; }
+    .card-type { font-size: 9px; color: var(--muted); }
+    .card-pt { align-self: flex-end; background: var(--bg); padding: 2px 5px; border-radius: 4px; font-size: 10px; font-weight: 800; }
+    .hand-bar {
+      height: 136px; background: var(--panel); border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px; padding: 8px 14px; overflow-x: auto;
+    }
+    .hand-card {
+      min-width: 86px; height: 116px; border-radius: 8px; background: #1e2636;
+      border: 1px solid #3b4761; padding: 6px; display: flex; flex-direction: column;
+      justify-content: space-between; flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- HOME WALL / BOX -->
+  <div id="home-wall">
+    <div class="wall-box">
+      <div class="auth-col">
         <div>
-          <h3 class="font-bold text-base text-white">Invite Another Player to Play Simultaneously</h3>
-          <p class="text-xs text-slate-400">Have your opponent open this app on their iPad/phone and join Room <strong id="modal-invite-code" class="text-amber-400 font-mono">AETHER</strong></p>
+          <div class="brand">✦ <span>AetherTable</span> MTG</div>
+          <p style="font-size:13px; color:var(--muted); margin:6px 0 0;">iPad Tabletop & Multiplayer Wall</p>
+
+          <!-- Signed-Out Form -->
+          <div id="auth-forms">
+            <div class="tabs">
+              <button class="tab-btn active" id="tab-login" onclick="switchAuthMode('login')">Sign In</button>
+              <button class="tab-btn" id="tab-signup" onclick="switchAuthMode('signup')">Create Account</button>
+            </div>
+            <div class="field hidden" id="name-field">
+              <label>Planeswalker Name</label>
+              <input type="text" id="auth-name" placeholder="e.g. Jace" />
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input type="email" id="auth-email" placeholder="you@example.com" />
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <input type="password" id="auth-pass" placeholder="Min 6 characters" />
+            </div>
+            <button class="btn-primary" id="auth-submit" onclick="handleAuth()">Sign In</button>
+            <div class="status-msg" id="auth-status"></div>
+          </div>
+
+          <!-- Signed-In Profile Box -->
+          <div id="profile-box" class="hidden" style="margin-top:20px;">
+            <div style="background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:14px;">
+              <div style="font-size:12px; color:var(--muted);">SIGNED IN AS</div>
+              <div id="profile-name" style="font-size:18px; font-weight:800; color:var(--accent); margin:4px 0;"></div>
+              <div id="profile-email" style="font-size:12px; color:var(--muted);"></div>
+            </div>
+            <button class="btn-secondary" style="width:100%; margin-top:12px;" onclick="signOutUser()">Sign Out</button>
+          </div>
         </div>
-        <button onclick="closeModal('modal-invite')" class="p-1.5 rounded-lg bg-obsidian-800 text-slate-400 hover:text-white">✕</button>
+
+        <div style="font-size:11px; color:var(--muted); line-height:1.4;">
+          Add to Home Screen in Safari for full-screen iPad play.
+        </div>
       </div>
 
-      <!-- Direct Invite Link -->
-      <div class="space-y-1.5">
-        <label class="block text-xs font-semibold text-amber-400">1. Share Direct Room Link (Auto-Joins Your Table)</label>
-        <div class="flex gap-2">
-          <input id="invite-link-input" type="text" readonly class="flex-1 bg-obsidian-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-300" />
-          <button onclick="copyInputText('invite-link-input', 'Invite link copied!')" class="px-3.5 py-2 rounded-xl bg-amber-500 text-obsidian-950 font-bold text-xs shrink-0 active:scale-95">Copy Link</button>
+      <!-- LIVE TABLE WALL -->
+      <div class="lobby-col">
+        <div class="lobby-header">
+          <div>
+            <h3 style="margin:0; font-size:18px;">Live Table Wall</h3>
+            <span style="font-size:12px; color:var(--muted);" id="lobby-sub">Sign in on the left to host or join a match</span>
+          </div>
+          <div class="create-bar">
+            <input type="text" id="new-room-code" placeholder="ROOM CODE" maxlength="10" style="width:125px; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:9px 10px; border-radius:10px; text-transform:uppercase;" />
+            <button class="btn-primary" style="width:auto; padding:10px 16px;" onclick="createRoom()">+ Host Table</button>
+          </div>
         </div>
-      </div>
-
-      <!-- Live Room Status -->
-      <div class="p-3 rounded-xl bg-obsidian-950 border border-slate-800 space-y-1.5 text-xs">
-        <div class="flex items-center justify-between">
-          <span class="text-slate-400">Real-Time Cloud Sync:</span>
-          <span id="invite-cloud-status" class="font-mono text-emerald-400">Active (Instant Sync)</span>
-        </div>
-        <div class="flex items-center justify-between">
-          <span class="text-slate-400">Seat 1 (Host):</span>
-          <span id="invite-seat1-name" class="font-semibold text-white">—</span>
-        </div>
-        <div class="flex items-center justify-between">
-          <span class="text-slate-400">Seat 2 (Challenger):</span>
-          <span id="invite-seat2-name" class="font-semibold text-amber-300">Open — Waiting for player</span>
-        </div>
+        <div class="room-list" id="room-list"></div>
       </div>
     </div>
   </div>
-<!-- ... existing code ... -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import {
-      getAuth,
-      signInAnonymously,
-      signInWithCustomToken,
-      GoogleAuthProvider,
-      signInWithPopup,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc,
-      updateDoc,
-      onSnapshot,
-      collection
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    /**
-     * AETHERTABLE MTG — REAL-TIME 2-PLAYER PWA GAME ENGINE
-     */
+  <!-- GAME TABLETOP -->
+  <div id="table-view" class="hidden">
+    <div class="hud-top">
+      <div class="hud-group">
+        <button class="btn-secondary" onclick="leaveRoom()">← Wall</button>
+        <div class="pill">Room: <strong id="hud-room" style="color:var(--accent);"></strong></div>
+        <button class="btn-secondary" onclick="untapAll()">Untap All</button>
+        <button class="btn-secondary" onclick="drawCard()">Draw Card</button>
+      </div>
+      <div class="hud-group">
+        <div class="pill">
+          <span id="opp-label">Opponent</span>: <strong id="opp-life" style="color:var(--danger);">20</strong>
+        </div>
+        <div class="pill">
+          <span>My Life</span>:
+          <button class="life-btn" onclick="changeLife(-1)">-</button>
+          <strong id="my-life" style="color:var(--ok); min-width:22px; text-align:center;">20</strong>
+          <button class="life-btn" onclick="changeLife(1)">+</button>
+        </div>
+      </div>
+    </div>
 
-    // =========================================================================
-    // 1. PWA MANIFEST & SERVICE WORKER REGISTRATION
-    // =========================================================================
-    (function setupPWA() {
-      try {
-        const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="#0b0e14"/><path d="M256 64L104 216L176 448H336L408 216L256 64Z" fill="#d97706"/><path d="M256 142L332 218L296 368H216L180 218L256 142Z" fill="#0b0e14"/></svg>`;
-        const iconUri = 'data:image/svg+xml;base64,' + btoa(iconSvg);
-        const manifest = {
-          name: 'AetherTable MTG',
-          short_name: 'AetherTable',
-          description: 'Real-Time 2-Player Magic: The Gathering Tabletop & Deck Sandbox',
-          start_url: './',
-          display: 'standalone',
-          orientation: 'landscape',
-          background_color: '#0b0e14',
-          theme_color: '#0b0e14',
-          icons: [
-            { src: iconUri, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
-            { src: iconUri, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
-          ]
-        };
-        const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-        const link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = URL.createObjectURL(blob);
-        document.head.appendChild(link);
+    <div class="battlefield-wrap">
+      <div class="zone opp" id="opp-zone">
+        <div class="zone-label" id="opp-zone-label">Opponent Battlefield</div>
+      </div>
+      <div class="zone" id="my-zone">
+        <div class="zone-label">Your Battlefield (Drag cards here • Tap to Tap/Untap)</div>
+      </div>
+    </div>
 
-        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-          const swCode = `
-            const CACHE = 'aethertable-v2';
-            self.addEventListener('install', e => self.skipWaiting());
-            self.addEventListener('activate', e => e.waitUntil(clients.claim()));
-            self.addEventListener('fetch', e => {
-              if (e.request.method !== 'GET') return;
-              e.respondWith(
-                caches.match(e.request).then(cached => fetch(e.request).then(res => {
-                  const clone = res.clone();
-                  caches.open(CACHE).then(c => c.put(e.request, clone));
-                  return res;
-                }).catch(() => cached))
-              );
-            });
-          `;
-          navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' }))).catch(() => {});
-        }
-      } catch (e) {}
-    })();
+    <div class="hand-bar" id="hand-bar"></div>
+  </div>
 
-    // =========================================================================
-    // 2. FIREBASE REAL-TIME AUTH & FIRESTORE MULTIPLAYER INITIALIZATION
-    // =========================================================================
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'aethertable-mtg-default';
-    let firebaseReady = false;
-    let auth = null;
-    let db = null;
+  <script>
+    // 1. PASTE YOUR SUPABASE CREDENTIALS HERE (Developer setup only)
+    const SUPABASE_URL = "=https://fwpnbbkyhugzppclsgbl.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_QU5rvS7F-VfmocfgP1SqKw_gymqv9bQ";
+
+    const sb = (SUPABASE_URL.startsWith("http"))
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+
+    let authMode = "login";
     let currentUser = null;
-    let unsubLobby = null;
-    let unsubRoom = null;
-    let liveWallRooms = [];
-    let latestRoomDocData = null;
+    let currentRoom = null;
+    let isHost = false;
+    let roomSub = null;
 
-    async function initCloudBackend() {
-      const badge = document.getElementById('cloud-sync-badge');
-      try {
-        if (typeof __firebase_config === 'undefined' || !__firebase_config) {
-          throw new Error('No cloud config');
-        }
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
+    const STARTER_DECK = [
+      { name: "Raging Goblin", type: "Creature — Goblin", pt: "1/1" },
+      { name: "Serra Angel", type: "Creature — Angel", pt: "4/4" },
+      { name: "Llanowar Elves", type: "Creature — Elf Druid", pt: "1/1" },
+      { name: "Lightning Bolt", type: "Instant", pt: "3 DMG" },
+      { name: "Counterspell", type: "Instant", pt: "Counter" },
+      { name: "Craw Wurm", type: "Creature — Wurm", pt: "6/4" },
+      { name: "Sol Ring", type: "Artifact", pt: "{2}" },
+      { name: "Command Tower", type: "Land", pt: "Mana" },
+      { name: "Mountain", type: "Basic Land", pt: "{R}" },
+      { name: "Plains", type: "Basic Land", pt: "{W}" },
+      { name: "Forest", type: "Basic Land", pt: "{G}" },
+      { name: "Island", type: "Basic Land", pt: "{U}" }
+    ];
 
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-
-        onAuthStateChanged(auth, (user) => {
-          currentUser = user;
-          if (user) {
-            firebaseReady = true;
-            badge.textContent = 'Live Cloud Ready';
-            badge.className = 'text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
-            document.getElementById('my-uid-pill').textContent = `ID: ${user.uid}`;
-
-            const nameInput = document.getElementById('lobby-player-name');
-            if (user.displayName && (!nameInput.value || nameInput.value.startsWith('Planeswalker'))) {
-              nameInput.value = user.displayName;
-            } else if (!nameInput.value) {
-              nameInput.value = 'Planeswalker_' + user.uid.slice(0, 4).toUpperCase();
-            }
-
-            if (!user.isAnonymous && user.displayName) {
-              document.getElementById('auth-user-label').textContent = user.displayName;
-            }
-
-            subscribeToPublicTableWall();
-          }
-        });
-      } catch (err) {
-        firebaseReady = false;
-        badge.textContent = 'Local / Offline Mode';
-        badge.className = 'text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-700/60 text-slate-300 border border-slate-600';
-        const nameInput = document.getElementById('lobby-player-name');
-        if (!nameInput.value) {
-          nameInput.value = 'Planeswalker_' + Math.floor(100 + Math.random() * 899);
-        }
-        renderTableWall();
-      }
-    }
-
-    window.signInWithGoogleAccount = async function () {
-      if (!auth) return showToast('Cloud authentication unavailable in offline mode.');
-      try {
-        const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
-        if (result.user) {
-          const display = result.user.displayName || result.user.email || 'Planeswalker';
-          document.getElementById('lobby-player-name').value = display;
-          document.getElementById('auth-user-label').textContent = display;
-          showToast(`Signed in as ${display}!`);
-        }
-      } catch (err) {
-        showToast('Sign-in popup blocked or cancelled. You can still play with your handle!');
-      }
+    let localState = {
+      hostLife: 20,
+      guestLife: 20,
+      hostBoard: [],
+      guestBoard: [],
+      hand: [],
+      library: []
     };
 
-    function subscribeToPublicTableWall() {
-      if (!firebaseReady || !db || !currentUser) return;
-      if (unsubLobby) unsubLobby();
-
-      const roomsCol = collection(db, 'artifacts', appId, 'public', 'data', 'mtg_tables');
-      unsubLobby = onSnapshot(
-        roomsCol,
-        (snapshot) => {
-          const rooms = [];
-          snapshot.forEach((docSnap) => {
-            rooms.push({ id: docSnap.id, ...docSnap.data() });
-          });
-          // Sort newest first in memory
-          rooms.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-          liveWallRooms = rooms;
-          renderTableWall();
-        },
-        (error) => {
-          console.error('Wall listener error:', error);
-        }
-      );
-    }
-
-    // =========================================================================
-    // 3. BUILT-IN MTG STARTER DECKS & CARD TEMPLATES
-    // =========================================================================
-    const STARTER_DECKS = {
-      mono_red: {
-        name: 'Mono-Red Burn & Aggro',
-        cards: [
-          { count: 20, name: 'Mountain', cost: '', type: 'Basic Land — Mountain', color: '#ef4444', pt: '', text: '{T}: Add {R}.' },
-          { count: 4, name: 'Monastery Swiftspear', cost: '{R}', type: 'Creature — Human Monk', color: '#ef4444', pt: '1/2', text: 'Haste. Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)' },
-          { count: 4, name: 'Goblin Guide', cost: '{R}', type: 'Creature — Goblin Scout', color: '#ef4444', pt: '2/2', text: 'Haste. Whenever Goblin Guide attacks, defending player reveals the top card of their library.' },
-          { count: 4, name: 'Eidolon of the Great Revel', cost: '{R}{R}', type: 'Enchantment Creature — Spirit', color: '#ef4444', pt: '2/2', text: 'Whenever a player casts a spell with mana value 3 or less, Eidolon deals 2 damage to that player.' },
-          { count: 4, name: 'Lightning Bolt', cost: '{R}', type: 'Instant', color: '#ef4444', pt: '', text: 'Lightning Bolt deals 3 damage to any target.' },
-          { count: 4, name: 'Lava Spike', cost: '{R}', type: 'Sorcery — Arcane', color: '#ef4444', pt: '', text: 'Lava Spike deals 3 damage to target player or planeswalker.' },
-          { count: 4, name: 'Rift Bolt', cost: '{2}{R}', type: 'Sorcery', color: '#ef4444', pt: '', text: 'Rift Bolt deals 3 damage to any target. Suspend 1—{R}.' },
-          { count: 4, name: 'Skewer the Critics', cost: '{2}{R}', type: 'Sorcery', color: '#ef4444', pt: '', text: 'Spectacle {R}. Skewer the Critics deals 3 damage to any target.' },
-          { count: 4, name: 'Light Up the Stage', cost: '{2}{R}', type: 'Sorcery', color: '#ef4444', pt: '', text: 'Spectacle {R}. Exile the top two cards of your library. Until the end of your next turn, you may play those cards.' },
-          { count: 4, name: 'Roiling Vortex', cost: '{1}{R}', type: 'Enchantment', color: '#ef4444', pt: '', text: 'At the beginning of each player\'s upkeep, Roiling Vortex deals 1 damage to them.' },
-          { count: 4, name: 'Bonecrusher Giant', cost: '{2}{R}', type: 'Creature — Giant', color: '#ef4444', pt: '4/3', text: 'Adventure — Stomp {1}{R}: Damage can\'t be prevented this turn. Stomp deals 2 damage to any target.' }
-        ]
-      },
-      azorius_control: {
-        name: 'Azorius Sky Control',
-        cards: [
-          { count: 12, name: 'Island', cost: '', type: 'Basic Land — Island', color: '#38bdf8', pt: '', text: '{T}: Add {U}.' },
-          { count: 12, name: 'Plains', cost: '', type: 'Basic Land — Plains', color: '#fef3c7', pt: '', text: '{T}: Add {W}.' },
-          { count: 4, name: 'Counterspell', cost: '{U}{U}', type: 'Instant', color: '#38bdf8', pt: '', text: 'Counter target spell.' },
-          { count: 4, name: 'Swords to Plowshares', cost: '{W}', type: 'Instant', color: '#fef3c7', pt: '', text: 'Exile target creature. Its controller gains life equal to its power.' },
-          { count: 4, name: 'Supreme Verdict', cost: '{1}{W}{W}{U}', type: 'Sorcery', color: '#93c5fd', pt: '', text: 'This spell can\'t be countered. Destroy all creatures.' },
-          { count: 4, name: 'Teferi, Hero of Dominaria', cost: '{3}{W}{U}', type: 'Legendary Planeswalker — Teferi', color: '#93c5fd', pt: '4', text: '+1: Draw a card. At the beginning of the next end step, untap up to two lands. -3: Put target nonland permanent into its owner\'s library third from the top.' },
-          { count: 4, name: 'Dream Trawler', cost: '{2}{W}{W}{U}{U}', type: 'Creature — Sphinx', color: '#93c5fd', pt: '3/5', text: 'Flying, lifelink. Whenever you draw a card, Dream Trawler gets +1/+0 until end of turn.' },
-          { count: 4, name: 'Memory Deluge', cost: '{2}{U}{U}', type: 'Instant', color: '#38bdf8', pt: '', text: 'Look at the top X cards of your library, where X is the amount of mana spent to cast this spell. Put two of them into your hand.' },
-          { count: 4, name: 'Shark Typhoon', cost: '{5}{U}', type: 'Enchantment', color: '#38bdf8', pt: '', text: 'Whenever you cast a noncreature spell, create an X/X blue Shark creature token with flying.' },
-          { count: 4, name: 'Dovin\'s Veto', cost: '{W}{U}', type: 'Instant', color: '#93c5fd', pt: '', text: 'This spell can\'t be countered. Counter target noncreature spell.' },
-          { count: 4, name: 'Solitude', cost: '{3}{W}{W}', type: 'Creature — Elemental Incarnation', color: '#fef3c7', pt: '3/2', text: 'Flash, lifelink. When Solitude enters, exile up to one other target creature.' }
-        ]
-      },
-      golgari_midrange: {
-        name: 'Golgari Graveyard Midrange',
-        cards: [
-          { count: 12, name: 'Swamp', cost: '', type: 'Basic Land — Swamp', color: '#64748b', pt: '', text: '{T}: Add {B}.' },
-          { count: 12, name: 'Forest', cost: '', type: 'Basic Land — Forest', color: '#4ade80', pt: '', text: '{T}: Add {G}.' },
-          { count: 4, name: 'Llanowar Elves', cost: '{G}', type: 'Creature — Elf Druid', color: '#4ade80', pt: '1/1', text: '{T}: Add {G}.' },
-          { count: 4, name: 'Fatal Push', cost: '{B}', type: 'Instant', color: '#64748b', pt: '', text: 'Destroy target creature if it has mana value 2 or less (4 or less with Revolt).' },
-          { count: 4, name: 'Tarmogoyf', cost: '{1}{G}', type: 'Creature — Lhurgoyf', color: '#4ade80', pt: '4/5', text: 'Tarmogoyf\'s power is equal to the number of card types among cards in all graveyards and its toughness is that number plus 1.' },
-          { count: 4, name: 'Sheoldred, the Apocalypse', cost: '{2}{B}{B}', type: 'Legendary Creature — Phyrexian Praetor', color: '#64748b', pt: '4/5', text: 'Deathtouch. Whenever you draw a card, you gain 2 life. Whenever an opponent draws a card, they lose 2 life.' },
-          { count: 4, name: 'Assassin\'s Trophy', cost: '{B}{G}', type: 'Instant', color: '#86efac', pt: '', text: 'Destroy target permanent an opponent controls. Its controller may search their library for a basic land card.' },
-          { count: 4, name: 'Glissa Sunslayer', cost: '{1}{B}{G}', type: 'Legendary Creature — Phyrexian Zombie Elf', color: '#86efac', pt: '3/3', text: 'First strike, deathtouch. Whenever Glissa deals combat damage to a player, draw a card and lose 1 life, or destroy an enchantment.' },
-          { count: 4, name: 'Questing Beast', cost: '{2}{G}{G}', type: 'Legendary Creature — Beast', color: '#4ade80', pt: '4/4', text: 'Vigilance, deathtouch, haste. Combat damage that would be dealt by creatures you control can\'t be prevented.' },
-          { count: 4, name: 'Thoughtseize', cost: '{B}', type: 'Sorcery', color: '#64748b', pt: '', text: 'Target player reveals their hand. You choose a nonland card from it. That player discards that card. You lose 2 life.' },
-          { count: 4, name: 'Tyvar, Jubilant Brawler', cost: '{1}{B}{G}', type: 'Legendary Planeswalker — Tyvar', color: '#86efac', pt: '3', text: 'You may activate abilities of creatures you control as though those creatures had haste. +1: Untap up to one target creature.' }
-        ]
-      },
-      eldrazi_ramp: {
-        name: 'Eldrazi & Artifact Ramp',
-        cards: [
-          { count: 16, name: 'Urza\'s Tower', cost: '', type: 'Land — Urza\'s Tower', color: '#cbd5e1', pt: '', text: '{T}: Add {C}. If you control an Urza\'s Mine and an Urza\'s Power-Plant, add {C}{C}{C} instead.' },
-          { count: 8, name: 'Wastes', cost: '', type: 'Basic Land — Wastes', color: '#cbd5e1', pt: '', text: '{T}: Add {C}.' },
-          { count: 4, name: 'Sol Ring', cost: '{1}', type: 'Artifact', color: '#cbd5e1', pt: '', text: '{T}: Add {C}{C}.' },
-          { count: 4, name: 'Expedition Map', cost: '{1}', type: 'Artifact', color: '#cbd5e1', pt: '', text: '{2}, {T}, Sacrifice Expedition Map: Search your library for a land card, reveal it, put it into your hand, then shuffle.' },
-          { count: 4, name: 'Thought-Knot Seer', cost: '{3}{C}', type: 'Creature — Eldrazi', color: '#cbd5e1', pt: '4/4', text: 'When Thought-Knot Seer enters, target opponent reveals their hand. You choose a nonland card from it and exile that card.' },
-          { count: 4, name: 'Reality Smasher', cost: '{4}{C}', type: 'Creature — Eldrazi', color: '#cbd5e1', pt: '5/5', text: 'Trample, haste. Whenever Reality Smasher becomes the target of a spell an opponent controls, counter that spell unless its controller discards a card.' },
-          { count: 4, name: 'Wurmcoil Engine', cost: '{6}', type: 'Artifact Creature — Phyrexian Wurm', color: '#cbd5e1', pt: '6/6', text: 'Deathtouch, lifelink. When Wurmcoil Engine dies, create a 3/3 colorless Phyrexian Wurm artifact creature token with deathtouch and a 3/3 with lifelink.' },
-          { count: 4, name: 'Karn Liberated', cost: '{7}', type: 'Legendary Planeswalker — Karn', color: '#cbd5e1', pt: '6', text: '+4: Target player exiles a card from their hand. -3: Exile target permanent.' },
-          { count: 4, name: 'Ulamog, the Ceaseless Hunger', cost: '{10}', type: 'Legendary Creature — Eldrazi', color: '#cbd5e1', pt: '10/10', text: 'Indestructible. When you cast this spell, exile two target permanents. Whenever Ulamog attacks, defending player exiles the top twenty cards of their library.' },
-          { count: 4, name: 'All Is Dust', cost: '{7}', type: 'Tribal Sorcery — Eldrazi', color: '#cbd5e1', pt: '', text: 'Each player sacrifices all colored permanents they control.' },
-          { count: 4, name: 'Walking Ballista', cost: '{X}{X}', type: 'Artifact Creature — Construct', color: '#cbd5e1', pt: '0/0', text: 'Walking Ballista enters with X +1/+1 counters on it. Remove a +1/+1 counter: Deal 1 damage to any target.' }
-        ]
-      }
-    };
-
-    // =========================================================================
-    // 4. GAME STATE & SYNCHRONIZATION
-    // =========================================================================
-    let customDecksMemory = {};
-    let gameState = {
-      roomCode: 'AETHER',
-      isSolo: false,
-      mySeat: 'seat1',
-      activeSeat: 'seat1',
-      phase: 0,
-      turnNumber: 1,
-      me: {
-        name: 'Planeswalker 1',
-        life: 20,
-        poison: 0,
-        mana: { W: 0, U: 0, B: 0, R: 0, G: 0, C: 0 },
-        library: [],
-        hand: [],
-        battlefield: [],
-        graveyard: [],
-        exile: [],
-        command: []
-      },
-      opponent: {
-        name: 'Waiting for Challenger...',
-        life: 20,
-        poison: 0,
-        handCount: 0,
-        libCount: 0,
-        battlefield: [],
-        graveyard: [],
-        exile: []
-      },
-      logs: []
-    };
-
-    let selectedCard = null; // { zone: 'hand'|'battlefield'|'opponent', uid: string }
-    let bcChannel = null;
-
-    function uid() {
-      return 'c_' + Math.random().toString(36).substring(2, 10);
-    }
-
-    function showToast(msg) {
-      const el = document.getElementById('toast');
+    function setStatus(msg, isErr = false) {
+      const el = document.getElementById("auth-status");
+      el.style.color = isErr ? "var(--danger)" : "var(--ok)";
       el.textContent = msg;
-      el.classList.remove('opacity-0');
-      clearTimeout(window._toastTimer);
-      window._toastTimer = setTimeout(() => el.classList.add('opacity-0'), 2600);
     }
 
-    function addLog(text, syncLog = true) {
-      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const entry = `[${time}] ${text}`;
-      gameState.logs.unshift(entry);
-      if (gameState.logs.length > 40) gameState.logs.pop();
-      renderLogs();
-      if (syncLog) pushMyStateToCloud();
+    function switchAuthMode(mode) {
+      authMode = mode;
+      document.getElementById("tab-login").classList.toggle("active", mode === "login");
+      document.getElementById("tab-signup").classList.toggle("active", mode === "signup");
+      document.getElementById("name-field").classList.toggle("hidden", mode === "login");
+      document.getElementById("auth-submit").textContent = mode === "login" ? "Sign In" : "Create Account";
+      setStatus("");
     }
 
-    // =========================================================================
-    // 5. LOBBY / LIVE TABLE WALL LOGIC
-    // =========================================================================
-    window.randomizeRoomCode = function () {
-      const words = ['AETHER', 'LOTUS', 'JACE', 'URZA', 'BOLT', 'MANA', 'SPARK', 'NICOL', 'RAVNA', 'ZENDI'];
-      const code = words[Math.floor(Math.random() * words.length)] + Math.floor(10 + Math.random() * 89);
-      document.getElementById('lobby-room-code').value = code;
-    };
+    async function handleAuth() {
+      if (!sb) {
+        setStatus("Developer setup needed: paste SUPABASE_URL and SUPABASE_ANON_KEY in index.html.", true);
+        return;
+      }
+      const email = document.getElementById("auth-email").value.trim();
+      const password = document.getElementById("auth-pass").value;
+      const displayName = document.getElementById("auth-name").value.trim() || email.split("@")[0];
 
-    function renderTableWall() {
-      const wall = document.getElementById('table-wall-list');
-      if (!wall) return;
-
-      if (liveWallRooms.length === 0) {
-        wall.innerHTML = `
-          <div class="p-4 rounded-xl bg-obsidian-900/90 border border-slate-800 text-center space-y-1.5">
-            <div class="text-xs font-semibold text-slate-300">No Active Tables on the Wall Yet</div>
-            <p class="text-[11px] text-slate-400">Create a table on the left—it will appear here immediately for other users to join!</p>
-          </div>
-        `;
+      if (!email || password.length < 6) {
+        setStatus("Enter a valid email and a password (6+ chars).", true);
         return;
       }
 
-      wall.innerHTML = liveWallRooms.map(room => {
-        const s1 = room.seat1?.name || 'Open Seat';
-        const s2 = room.seat2?.name || 'Open Seat';
-        const isFull = Boolean(room.seat1?.uid && room.seat2?.uid);
+      setStatus("Connecting...");
+      if (authMode === "signup") {
+        const { data, error } = await sb.auth.signUp({
+          email,
+          password,
+          options: { data: { display_name: displayName } }
+        });
+        if (error) return setStatus(error.message, true);
+        setStatus("Account created! Signed in.");
+        onSignedIn(data.user);
+      } else {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) return setStatus(error.message, true);
+        setStatus("Signed in!");
+        onSignedIn(data.user);
+      }
+    }
+
+    function onSignedIn(user) {
+      if (!user) return;
+      currentUser = {
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.display_name || user.email.split("@")[0]
+      };
+      document.getElementById("auth-forms").classList.add("hidden");
+      document.getElementById("profile-box").classList.remove("hidden");
+      document.getElementById("profile-name").textContent = currentUser.name;
+      document.getElementById("profile-email").textContent = currentUser.email;
+      document.getElementById("lobby-sub").textContent = "Create a table or tap Join on an open seat";
+      loadLobby();
+    }
+
+    async function signOutUser() {
+      if (sb) await sb.auth.signOut();
+      currentUser = null;
+      document.getElementById("auth-forms").classList.remove("hidden");
+      document.getElementById("profile-box").classList.add("hidden");
+      document.getElementById("room-list").innerHTML = "";
+    }
+
+    async function loadLobby() {
+      if (!sb || !currentUser) return;
+      const { data } = await sb.from("rooms").select("*").order("updated_at", { ascending: false }).limit(30);
+      renderLobby(data || []);
+
+      sb.channel("lobby-wall")
+        .on("postgres_changes", { event: "*", schema: "public", table: "rooms" }, async () => {
+          const { data: fresh } = await sb.from("rooms").select("*").order("updated_at", { ascending: false }).limit(30);
+          renderLobby(fresh || []);
+        })
+        .subscribe();
+    }
+
+    function renderLobby(rooms) {
+      const list = document.getElementById("room-list");
+      if (!rooms.length) {
+        list.innerHTML = `<div style="color:var(--muted); font-size:14px; padding:20px; text-align:center;">No active tables yet. Tap <strong>+ Host Table</strong> to start one.</div>`;
+        return;
+      }
+      list.innerHTML = rooms.map(r => {
+        const isFull = Boolean(r.guest_id && r.guest_id !== currentUser.id && r.host_id !== currentUser.id);
         return `
-          <div class="p-3 rounded-xl bg-obsidian-900 border border-slate-800 hover:border-amber-500/40 flex items-center justify-between gap-2 transition">
-            <div class="min-w-0">
-              <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-xs text-amber-400">#${room.code || room.id}</span>
-                <span class="text-[10px] font-mono text-slate-400">${room.startingLife || 20} Life</span>
+          <div class="room-card">
+            <div class="room-meta">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="room-code">${r.code}</span>
+                <span class="badge ${isFull ? 'full' : ''}">${isFull ? '2/2 Full' : 'Open Seat'}</span>
               </div>
-              <div class="text-[11px] text-slate-300 truncate mt-0.5">
-                <span class="text-sky-300">${escapeHtml(s1)}</span> <span class="text-slate-500">vs</span> <span class="${room.seat2?.name ? 'text-rose-300' : 'text-emerald-400'}">${escapeHtml(s2)}</span>
-              </div>
+              <div class="room-players">Seat 1: <strong>${r.host_name}</strong> • Seat 2: <strong>${r.guest_name || 'Waiting...'}</strong></div>
             </div>
-            <button onclick="quickJoinWallRoom('${room.code || room.id}')" class="px-3 py-1.5 rounded-lg ${isFull ? 'bg-slate-700 text-slate-200' : 'bg-emerald-500 hover:bg-emerald-400 text-obsidian-950 font-bold'} text-[11px] shrink-0 active:scale-95">
-              ${isFull ? 'Rejoin / Spectate' : 'Join Seat 2 →'}
+            <button class="btn-secondary" ${isFull ? 'disabled style="opacity:0.4"' : ''} onclick="joinRoom('${r.code}')">
+              ${r.host_id === currentUser.id ? 'Rejoin Host' : 'Join Table'}
             </button>
           </div>
         `;
-      }).join('');
+      }).join("");
     }
 
-    function escapeHtml(str) {
-      return String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    function initDeck() {
+      const deck = [...STARTER_DECK, ...STARTER_DECK].sort(() => Math.random() - 0.5);
+      localState.library = deck.slice(7);
+      localState.hand = deck.slice(0, 7).map((c, idx) => ({ ...c, uid: Date.now() + "-" + idx }));
     }
 
-    window.quickJoinWallRoom = function (code) {
-      document.getElementById('lobby-room-code').value = code;
-      document.getElementById('lobby-seat').value = 'auto';
-      enterTable(false);
-    };
+    async function createRoom() {
+      if (!currentUser) return setStatus("Sign in first before hosting a table.", true);
+      const raw = document.getElementById("new-room-code").value.trim().toUpperCase();
+      const code = raw || Math.random().toString(36).substring(2, 7).toUpperCase();
 
-    window.joinFromWallInput = function () {
-      const raw = document.getElementById('wall-invite-paste').value.trim();
-      if (!raw) return showToast('Paste an invite link or room code first');
-      let code = raw;
-      if (raw.includes('#room=')) {
-        code = raw.split('#room=')[1].split('&')[0];
-      } else if (raw.includes('#join=')) {
-        code = raw.split('#join=')[1].split('&')[0];
-      }
-      document.getElementById('lobby-room-code').value = code.replace('#', '').toUpperCase().slice(0, 12);
-      document.getElementById('lobby-seat').value = 'auto';
-      enterTable(false);
-    };
+      initDeck();
+      const initialState = { hostLife: 20, guestLife: 20, hostBoard: [], guestBoard: [] };
 
-    function buildDeckArray(deckKey) {
-      const deckObj = customDecksMemory[deckKey] || STARTER_DECKS[deckKey] || STARTER_DECKS.mono_red;
-      const list = [];
-      for (const entry of deckObj.cards) {
-        for (let i = 0; i < entry.count; i++) {
-          list.push({
-            uid: uid(),
-            name: entry.name,
-            cost: entry.cost || '',
-            type: entry.type || 'Spell',
-            color: entry.color || '#cbd5e1',
-            pt: entry.pt || '',
-            text: entry.text || '',
-            image: entry.image || '',
-            tapped: false,
-            counters: 0,
-            nx: 0.05,
-            ny: 0.1
-          });
-        }
-      }
-      return shuffleArray(list);
+      const { data, error } = await sb.from("rooms").upsert({
+        code,
+        host_id: currentUser.id,
+        host_name: currentUser.name,
+        guest_id: null,
+        guest_name: null,
+        state: initialState,
+        updated_at: new Date().toISOString()
+      }).select().single();
+
+      if (error) return setStatus(error.message, true);
+      enterTable(data, true);
     }
 
-    function shuffleArray(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
+    async function joinRoom(code) {
+      if (!currentUser) return setStatus("Sign in first.", true);
+      const { data: room, error } = await sb.from("rooms").select("*").eq("code", code).single();
+      if (error || !room) return setStatus("Room not found.", true);
+
+      const hosting = room.host_id === currentUser.id;
+      if (!hosting && !room.guest_id) {
+        const { data: updated } = await sb.from("rooms").update({
+          guest_id: currentUser.id,
+          guest_name: currentUser.name,
+          updated_at: new Date().toISOString()
+        }).eq("code", code).select().single();
+        initDeck();
+        enterTable(updated || room, false);
+      } else {
+        if (!localState.hand.length) initDeck();
+        enterTable(room, hosting);
       }
-      return a;
     }
 
-    window.enterTable = async function (isSolo) {
-      const playerName = document.getElementById('lobby-player-name').value.trim() || 'Planeswalker';
-      const roomCode = (document.getElementById('lobby-room-code').value.trim() || 'AETHER').toUpperCase().replace(/[^A-Z0-9_-]/g, '');
-      const deckKey = document.getElementById('lobby-deck-select').value;
-      const startLife = parseInt(document.getElementById('lobby-starting-life').value, 10) || 20;
-      const requestedSeat = document.getElementById('lobby-seat').value;
+    function enterTable(room, hosting) {
+      currentRoom = room;
+      isHost = hosting;
+      localState.hostLife = room.state?.hostLife ?? 20;
+      localState.guestLife = room.state?.guestLife ?? 20;
+      localState.hostBoard = room.state?.hostBoard ?? [];
+      localState.guestBoard = room.state?.guestBoard ?? [];
 
-      const fullDeck = buildDeckArray(deckKey);
-      const initialHand = fullDeck.splice(0, 7);
+      document.getElementById("home-wall").classList.add("hidden");
+      document.getElementById("table-view").classList.remove("hidden");
+      document.getElementById("hud-room").textContent = room.code;
 
-      let assignedSeat = 'seat1';
-      let existingData = null;
+      if (roomSub) sb.removeChannel(roomSub);
+      roomSub = sb.channel("room-" + room.code)
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "rooms", filter: `code=eq.${room.code}` }, payload => {
+          currentRoom = payload.new;
+          const st = payload.new.state || {};
+          localState.hostLife = st.hostLife ?? 20;
+          localState.guestLife = st.guestLife ?? 20;
+          localState.hostBoard = st.hostBoard ?? [];
+          localState.guestBoard = st.guestBoard ?? [];
+          renderTable();
+        })
+        .subscribe();
 
-      if (!isSolo && firebaseReady && db && currentUser) {
-        try {
-          const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'mtg_tables', roomCode);
-          const snap = await getDoc(roomRef);
-          if (snap.exists()) {
-            existingData = snap.data();
-            if (requestedSeat === 'seat1' || requestedSeat === 'seat2') {
-              assignedSeat = requestedSeat;
-            } else if (existingData.seat1?.uid === currentUser.uid) {
-              assignedSeat = 'seat1';
-            } else if (!existingData.seat1?.uid) {
-              assignedSeat = 'seat1';
-            } else {
-              assignedSeat = 'seat2';
-            }
-          } else {
-            assignedSeat = requestedSeat === 'seat2' ? 'seat2' : 'seat1';
-          }
-        } catch (e) {
-          console.error('Error checking room:', e);
-        }
-      } else if (requestedSeat === 'seat2') {
-        assignedSeat = 'seat2';
-      }
+      renderTable();
+    }
 
-      const effectiveStartLife = existingData?.startingLife || startLife;
-
-      gameState = {
-        roomCode,
-        isSolo,
-        mySeat: assignedSeat,
-        activeSeat: existingData?.activeSeat || 'seat1',
-        phase: existingData?.phase ?? 0,
-        turnNumber: existingData?.turnNumber || 1,
-        me: {
-          name: playerName,
-          life: effectiveStartLife,
-          poison: 0,
-          mana: { W: 0, U: 0, B: 0, R: 0, G: 0, C: 0 },
-          library: fullDeck,
-          hand: initialHand,
-          battlefield: [],
-          graveyard: [],
-          exile: [],
-          command: []
+    async function syncState() {
+      if (!sb || !currentRoom) return;
+      await sb.from("rooms").update({
+        state: {
+          hostLife: localState.hostLife,
+          guestLife: localState.guestLife,
+          hostBoard: localState.hostBoard,
+          guestBoard: localState.guestBoard
         },
-        opponent: {
-          name: isSolo ? 'Goldfish AI Dummy' : 'Waiting for Opponent...',
-          life: effectiveStartLife,
-          poison: 0,
-          handCount: 0,
-          libCount: 0,
-          battlefield: [],
-          graveyard: [],
-          exile: []
-        },
-        logs: existingData?.logs || []
-      };
-
-      // Switch views
-      document.getElementById('home-view').classList.add('hidden');
-      document.getElementById('table-view').classList.remove('hidden');
-
-      document.getElementById('hud-room-code').textContent = roomCode;
-      document.getElementById('my-name-label').textContent = `${playerName} (${assignedSeat === 'seat1' ? 'S1' : 'S2'})`;
-      document.getElementById('opp-name-label').textContent = gameState.opponent.name;
-
-      // Setup BroadcastChannel fallback + Firestore Real-Time Room Subscription
-      setupLocalBroadcast(roomCode);
-      if (!isSolo && firebaseReady && db && currentUser) {
-        await joinAndSubscribeFirestoreRoom(roomCode, assignedSeat, effectiveStartLife, existingData);
-      }
-
-      addLog(`${playerName} joined Room #${roomCode} as ${assignedSeat === 'seat1' ? 'Seat 1 (Host)' : 'Seat 2 (Challenger)'}.`);
-      renderAll();
-    };
-
-    window.leaveTable = function () {
-      if (bcChannel) {
-        bcChannel.close();
-        bcChannel = null;
-      }
-      if (unsubRoom) {
-        unsubRoom();
-        unsubRoom = null;
-      }
-      selectedCard = null;
-      closeCardInspector();
-      document.getElementById('table-view').classList.add('hidden');
-      document.getElementById('home-view').classList.remove('hidden');
-    };
-
-    // =========================================================================
-    // 6. REAL-TIME FIRESTORE + LOCAL BROADCAST SYNCHRONIZATION
-    // =========================================================================
-    function buildSeatSnapshotPayload() {
-      return {
-        uid: currentUser ? currentUser.uid : 'local',
-        name: gameState.me.name,
-        life: gameState.me.life,
-        poison: gameState.me.poison,
-        handCount: gameState.me.hand.length,
-        libCount: gameState.me.library.length,
-        gyCount: gameState.me.graveyard.length,
-        exileCount: gameState.me.exile.length,
-        battlefield: gameState.me.battlefield
-      };
+        updated_at: new Date().toISOString()
+      }).eq("code", currentRoom.code);
     }
 
-    async function joinAndSubscribeFirestoreRoom(roomCode, mySeat, startLife, existingData) {
-      const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'mtg_tables', roomCode);
-      const mySeatPayload = buildSeatSnapshotPayload();
-
-      if (!existingData) {
-        await setDoc(roomRef, {
-          code: roomCode,
-          startingLife: startLife,
-          activeSeat: 'seat1',
-          phase: 0,
-          turnNumber: 1,
-          updatedAt: Date.now(),
-          logs: gameState.logs,
-          seat1: mySeat === 'seat1' ? mySeatPayload : null,
-          seat2: mySeat === 'seat2' ? mySeatPayload : null
-        });
-      } else {
-        await updateDoc(roomRef, {
-          [mySeat]: mySeatPayload,
-          updatedAt: Date.now()
-        });
-      }
-
-      if (unsubRoom) unsubRoom();
-      unsubRoom = onSnapshot(
-        roomRef,
-        (docSnap) => {
-          if (!docSnap.exists()) return;
-          const data = docSnap.data();
-          latestRoomDocData = data;
-
-          gameState.activeSeat = data.activeSeat || 'seat1';
-          gameState.phase = data.phase ?? 0;
-          gameState.turnNumber = data.turnNumber || 1;
-          if (Array.isArray(data.logs)) {
-            gameState.logs = data.logs;
-          }
-
-          const oppSeatKey = gameState.mySeat === 'seat1' ? 'seat2' : 'seat1';
-          const oppData = data[oppSeatKey];
-
-          if (oppData && oppData.name) {
-            gameState.opponent.name = oppData.name;
-            gameState.opponent.life = oppData.life ?? data.startingLife ?? 20;
-            gameState.opponent.poison = oppData.poison ?? 0;
-            gameState.opponent.handCount = oppData.handCount ?? 0;
-            gameState.opponent.libCount = oppData.libCount ?? 0;
-            gameState.opponent.battlefield = oppData.battlefield || [];
-            document.getElementById('peer-connection-dot').className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
-          } else {
-            gameState.opponent.name = 'Waiting for Challenger...';
-            gameState.opponent.battlefield = [];
-            document.getElementById('peer-connection-dot').className = 'w-2 h-2 rounded-full bg-amber-400';
-          }
-
-          updatePhaseUI();
-          renderOpponentHUD();
-          renderBattlefield();
-          renderLogs();
-          updateInviteModalRoster();
-        },
-        (err) => {
-          console.error('Room snapshot error:', err);
-        }
-      );
+    function leaveRoom() {
+      if (roomSub) sb.removeChannel(roomSub);
+      currentRoom = null;
+      document.getElementById("table-view").classList.add("hidden");
+      document.getElementById("home-wall").classList.remove("hidden");
     }
 
-    let pushDebounceTimer = null;
-    function pushMyStateToCloud(immediate = false) {
-      // Broadcast to same-browser tabs immediately
-      if (bcChannel) {
-        bcChannel.postMessage({
-          type: 'LOCAL_SYNC',
-          seat: gameState.mySeat,
-          seatData: buildSeatSnapshotPayload(),
-          activeSeat: gameState.activeSeat,
-          phase: gameState.phase,
-          logs: gameState.logs
-        });
-      }
-
-      if (gameState.isSolo || !firebaseReady || !db || !currentUser) return;
-
-      const executeWrite = async () => {
-        try {
-          const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'mtg_tables', gameState.roomCode);
-          await updateDoc(roomRef, {
-            [gameState.mySeat]: buildSeatSnapshotPayload(),
-            activeSeat: gameState.activeSeat,
-            phase: gameState.phase,
-            turnNumber: gameState.turnNumber,
-            logs: gameState.logs.slice(0, 35),
-            updatedAt: Date.now()
-          });
-        } catch (err) {
-          console.error('Cloud state sync error:', err);
-        }
-      };
-
-      if (immediate) {
-        clearTimeout(pushDebounceTimer);
-        executeWrite();
-      } else {
-        clearTimeout(pushDebounceTimer);
-        pushDebounceTimer = setTimeout(executeWrite, 90);
-      }
+    function changeLife(delta) {
+      if (isHost) localState.hostLife += delta;
+      else localState.guestLife += delta;
+      renderTable();
+      syncState();
     }
 
-    function setupLocalBroadcast(roomCode) {
-      if (bcChannel) bcChannel.close();
-      if ('BroadcastChannel' in window) {
-        bcChannel = new BroadcastChannel('aethertable_room_' + roomCode);
-        bcChannel.onmessage = (event) => {
-          const d = event.data;
-          if (!d || d.type !== 'LOCAL_SYNC' || d.seat === gameState.mySeat) return;
-          gameState.opponent.name = d.seatData.name;
-          gameState.opponent.life = d.seatData.life;
-          gameState.opponent.poison = d.seatData.poison;
-          gameState.opponent.handCount = d.seatData.handCount;
-          gameState.opponent.libCount = d.seatData.libCount;
-          gameState.opponent.battlefield = d.seatData.battlefield || [];
-          gameState.activeSeat = d.activeSeat;
-          gameState.phase = d.phase;
-          document.getElementById('peer-connection-dot').className = 'w-2 h-2 rounded-full bg-emerald-400';
-          updatePhaseUI();
-          renderOpponentHUD();
-          renderBattlefield();
-        };
-      }
-    }
-
-    window.openInviteModal = function () {
-      const baseUrl = window.location.href.split('#')[0];
-      document.getElementById('invite-link-input').value = `${baseUrl}#room=${gameState.roomCode}`;
-      document.getElementById('modal-invite-code').textContent = gameState.roomCode;
-      updateInviteModalRoster();
-      openModal('modal-invite');
-    };
-
-    function updateInviteModalRoster() {
-      const s1El = document.getElementById('invite-seat1-name');
-      const s2El = document.getElementById('invite-seat2-name');
-      if (!s1El || !s2El) return;
-
-      if (latestRoomDocData) {
-        s1El.textContent = latestRoomDocData.seat1?.name || 'Open';
-        s2El.textContent = latestRoomDocData.seat2?.name || 'Open — Waiting for player';
-      } else {
-        s1El.textContent = gameState.mySeat === 'seat1' ? gameState.me.name : gameState.opponent.name;
-        s2El.textContent = gameState.mySeat === 'seat2' ? gameState.me.name : 'Open — Waiting for player';
-      }
-    }
-
-    // =========================================================================
-    // 7. MTG GAMEPLAY ACTIONS (LIFE, MANA, PHASES, DRAW, ZONES)
-    // =========================================================================
-    window.adjustLife = function (delta) {
-      gameState.me.life += delta;
-      renderMyHUD();
-      addLog(`${gameState.me.name} life ${delta > 0 ? '+' + delta : delta} (${gameState.me.life})`);
-    };
-
-    window.adjustPoison = function (delta) {
-      gameState.me.poison = Math.max(0, gameState.me.poison + delta);
-      renderMyHUD();
-      addLog(`${gameState.me.name} poison counters: ${gameState.me.poison}`);
-    };
-
-    window.addMana = function (color) {
-      gameState.me.mana[color] = (gameState.me.mana[color] || 0) + 1;
-      document.getElementById('mana-' + color).textContent = gameState.me.mana[color];
-    };
-
-    window.clearManaPool = function () {
-      ['W', 'U', 'B', 'R', 'G', 'C'].forEach(c => {
-        gameState.me.mana[c] = 0;
-        document.getElementById('mana-' + c).textContent = '0';
-      });
-    };
-
-    function updatePhaseUI() {
-      document.querySelectorAll('.phase-btn').forEach((btn, i) => {
-        if (i === gameState.phase) {
-          btn.className = 'phase-btn px-2 py-1 rounded-lg text-[11px] font-semibold bg-amber-500 text-obsidian-950';
-        } else {
-          btn.className = 'phase-btn px-2 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-white';
-        }
-      });
-
-      const turnBadge = document.getElementById('active-turn-badge');
-      const isMyTurn = gameState.activeSeat === gameState.mySeat;
-      if (isMyTurn) {
-        turnBadge.textContent = 'Your Turn';
-        turnBadge.className = 'px-2 py-1 rounded-lg text-[10px] font-mono uppercase font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mr-1';
-      } else {
-        turnBadge.textContent = "Opp's Turn";
-        turnBadge.className = 'px-2 py-1 rounded-lg text-[10px] font-mono uppercase font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 mr-1';
-      }
-    }
-
-    window.setPhase = function (idx) {
-      gameState.phase = idx;
-      updatePhaseUI();
-      pushMyStateToCloud(true);
-    };
-
-    window.passTurn = function () {
-      gameState.phase = 0;
-      gameState.turnNumber += 1;
-      gameState.activeSeat = gameState.mySeat === 'seat1' ? 'seat2' : 'seat1';
-      clearManaPool();
-      updatePhaseUI();
-      addLog(`${gameState.me.name} passed the turn.`);
-      showToast('Turn passed to opponent!');
-      pushMyStateToCloud(true);
-    };
-
-    window.untapAll = function () {
-      let count = 0;
-      gameState.me.battlefield.forEach(c => {
-        if (c.tapped) {
-          c.tapped = false;
-          count++;
-        }
-      });
-      renderBattlefield();
-      addLog(`${gameState.me.name} untapped ${count} permanent(s).`);
-    };
-
-    window.drawCard = function () {
-      if (gameState.me.library.length === 0) {
-        showToast('Library is empty!');
-        return;
-      }
-      const card = gameState.me.library.shift();
-      gameState.me.hand.push(card);
-      renderAll();
-      addLog(`${gameState.me.name} drew a card.`);
-    };
-
-    window.mulliganHand = function () {
-      gameState.me.library.push(...gameState.me.hand);
-      gameState.me.hand = [];
-      gameState.me.library = shuffleArray(gameState.me.library);
-      for (let i = 0; i < 7 && gameState.me.library.length > 0; i++) {
-        gameState.me.hand.push(gameState.me.library.shift());
-      }
-      renderAll();
-      addLog(`${gameState.me.name} took a mulligan (drew 7).`);
-    };
-
-    window.shuffleLibrary = function () {
-      gameState.me.library = shuffleArray(gameState.me.library);
-      addLog(`${gameState.me.name} shuffled their library.`);
-      showToast('Library shuffled');
-    };
-
-    window.rollDice = function (sides) {
-      const res = Math.floor(Math.random() * sides) + 1;
-      addLog(`${gameState.me.name} rolled a d${sides}: ${res}`);
-      showToast(`d${sides} Roll: ${res}`);
-    };
-
-    window.flipCoin = function () {
-      const res = Math.random() < 0.5 ? 'HEADS' : 'TAILS';
-      addLog(`${gameState.me.name} flipped a coin: ${res}`);
-      showToast(`Coin Flip: ${res}`);
-    };
-
-    window.autoArrangeBattlefield = function () {
-      const lands = gameState.me.battlefield.filter(c => c.type.toLowerCase().includes('land'));
-      const nonlands = gameState.me.battlefield.filter(c => !c.type.toLowerCase().includes('land'));
-
-      nonlands.forEach((c, idx) => {
-        c.nx = 0.03 + (idx % 7) * 0.13;
-        c.ny = 0.06 + Math.floor(idx / 7) * 0.42;
-      });
-      lands.forEach((c, idx) => {
-        c.nx = 0.03 + (idx % 8) * 0.115;
-        c.ny = 0.52 + Math.floor(idx / 8) * 0.36;
-      });
-      renderBattlefield();
-      pushMyStateToCloud(true);
-    };
-
-    // =========================================================================
-    // 8. CARD INTERACTION, INSPECTOR & NORMALIZED DRAG-AND-DROP
-    // =========================================================================
-    function formatManaCost(costStr) {
-      if (!costStr) return '';
-      return costStr.replace(/\{([WUBRGC0-9X]+)\}/g, (_, sym) => {
-        const cls = ['W', 'U', 'B', 'R', 'G', 'C'].includes(sym) ? `mana-${sym}` : 'mana-C';
-        return `<span class="mana-pip ${cls}">${sym}</span>`;
-      });
-    }
-
-    function openCardInspector(zone, cardUid) {
-      let card = null;
-      if (zone === 'hand') card = gameState.me.hand.find(c => c.uid === cardUid);
-      else if (zone === 'battlefield') card = gameState.me.battlefield.find(c => c.uid === cardUid);
-      else if (zone === 'opponent') card = (gameState.opponent.battlefield || []).find(c => c.uid === cardUid);
-
-      if (!card) return;
-
-      selectedCard = { zone, uid: cardUid };
-      const bar = document.getElementById('card-action-bar');
-      bar.classList.remove('hidden');
-
-      document.getElementById('sel-card-name').textContent = card.name;
-      document.getElementById('sel-card-cost').innerHTML = formatManaCost(card.cost);
-      document.getElementById('sel-card-type').textContent = card.type;
-      document.getElementById('sel-card-text').textContent = card.text || 'No oracle text.';
-      document.getElementById('sel-card-counters').textContent = card.counters || 0;
-
-      document.getElementById('sel-bf-controls').classList.toggle('hidden', zone !== 'battlefield');
-      document.getElementById('sel-hand-controls').classList.toggle('hidden', zone !== 'hand');
-      document.getElementById('sel-opp-controls').classList.toggle('hidden', zone !== 'opponent');
-    }
-
-    window.closeCardInspector = function () {
-      selectedCard = null;
-      document.getElementById('card-action-bar').classList.add('hidden');
-    };
-
-    window.playSelectedFromHand = function () {
-      if (!selectedCard || selectedCard.zone !== 'hand') return;
-      const idx = gameState.me.hand.findIndex(c => c.uid === selectedCard.uid);
-      if (idx === -1) return;
-      const [card] = gameState.me.hand.splice(idx, 1);
-
-      const isLand = card.type.toLowerCase().includes('land');
-      const count = gameState.me.battlefield.length;
-      card.nx = 0.04 + (count % 7) * 0.13;
-      card.ny = isLand ? 0.52 : 0.08;
-      card.tapped = false;
-
-      gameState.me.battlefield.push(card);
-      closeCardInspector();
-      renderAll();
-      addLog(`${gameState.me.name} played ${card.name}.`);
-    };
-
-    window.toggleSelectedTap = function () {
-      if (!selectedCard || selectedCard.zone !== 'battlefield') return;
-      const card = gameState.me.battlefield.find(c => c.uid === selectedCard.uid);
-      if (!card) return;
-      card.tapped = !card.tapped;
-      renderBattlefield();
-      pushMyStateToCloud(true);
-    };
-
-    window.modifySelectedCounter = function (delta) {
-      if (!selectedCard || selectedCard.zone !== 'battlefield') return;
-      const card = gameState.me.battlefield.find(c => c.uid === selectedCard.uid);
-      if (!card) return;
-      card.counters = (card.counters || 0) + delta;
-      document.getElementById('sel-card-counters').textContent = card.counters;
-      renderBattlefield();
-      pushMyStateToCloud();
-    };
-
-    window.moveSelectedTo = function (targetZone) {
-      if (!selectedCard || selectedCard.zone === 'opponent') return;
-      const sourceArr = selectedCard.zone === 'hand' ? gameState.me.hand : gameState.me.battlefield;
-      const idx = sourceArr.findIndex(c => c.uid === selectedCard.uid);
-      if (idx === -1) return;
-      const [card] = sourceArr.splice(idx, 1);
-      card.tapped = false;
-      card.counters = 0;
-
-      if (targetZone === 'hand') gameState.me.hand.push(card);
-      else if (targetZone === 'graveyard') gameState.me.graveyard.unshift(card);
-      else if (targetZone === 'exile') gameState.me.exile.unshift(card);
-
-      closeCardInspector();
-      renderAll();
-      addLog(`${gameState.me.name} moved ${card.name} to ${targetZone}.`);
-    };
-
-    // =========================================================================
-    // 9. RENDERING ENGINE (BATTLEFIELD, HAND, ZONES, LOGS)
-    // =========================================================================
-    function renderAll() {
-      renderMyHUD();
-      renderOpponentHUD();
-      updatePhaseUI();
-      renderBattlefield();
+    function drawCard() {
+      if (!localState.library.length) return;
+      const next = localState.library.shift();
+      localState.hand.push({ ...next, uid: Date.now() + "-" + Math.random() });
       renderHand();
-      renderLogs();
     }
 
-    function renderMyHUD() {
-      document.getElementById('my-life-val').textContent = gameState.me.life;
-      document.getElementById('my-poison-val').textContent = gameState.me.poison;
-      document.getElementById('my-hand-count').textContent = gameState.me.hand.length;
-      document.getElementById('zone-lib-count').textContent = gameState.me.library.length;
-      document.getElementById('zone-gy-count').textContent = gameState.me.graveyard.length;
-      document.getElementById('zone-exile-count').textContent = gameState.me.exile.length;
-      document.getElementById('zone-cmd-count').textContent = gameState.me.command.length;
-    }
-
-    function renderOpponentHUD() {
-      document.getElementById('opp-name-label').textContent = gameState.opponent.name;
-      document.getElementById('opp-life-val').textContent = gameState.opponent.life;
-      document.getElementById('opp-hand-count').textContent = gameState.opponent.handCount;
-      document.getElementById('opp-lib-count').textContent = gameState.opponent.libCount;
-    }
-
-    function createCardHTML(card) {
-      const counterBadge = card.counters !== 0 && card.counters !== undefined
-        ? `<span class="px-1.5 py-0.5 rounded bg-amber-500 text-obsidian-950 font-mono font-bold text-[10px]">${card.counters > 0 ? '+' + card.counters : card.counters}/${card.counters > 0 ? '+' + card.counters : card.counters}</span>`
-        : '';
-      const ptBadge = card.pt
-        ? `<span class="px-1.5 py-0.5 rounded bg-obsidian-950/90 border border-slate-700 font-mono font-bold text-[10px] text-white">${escapeHtml(card.pt)}</span>`
-        : '';
-
-      return `
-        <div class="w-24 h-32 rounded-xl bg-obsidian-900 border-2 shadow-xl flex flex-col justify-between p-1.5 overflow-hidden relative"
-             style="border-color: ${card.color || '#475569'};">
-          <!-- Card Header -->
-          <div class="flex items-start justify-between gap-1 bg-obsidian-950/85 px-1.5 py-0.5 rounded-md">
-            <span class="font-bold text-[10px] leading-tight text-white truncate">${escapeHtml(card.name)}</span>
-          </div>
-          <!-- Art Box -->
-          <div class="flex-1 my-1 rounded-md overflow-hidden relative flex items-center justify-center bg-obsidian-950 border border-slate-800/80">
-            ${card.image
-              ? `<img src="${card.image}" class="w-full h-full object-cover" onerror="this.style.display='none'" />`
-              : `<div class="w-full h-full opacity-25" style="background: radial-gradient(circle, ${card.color}, transparent 75%);"></div>`
-            }
-            <div class="absolute bottom-1 left-1 flex gap-1">${counterBadge}</div>
-          </div>
-          <!-- Type & P/T Footer -->
-          <div class="flex items-center justify-between gap-1">
-            <span class="text-[9px] text-slate-400 truncate">${escapeHtml((card.type || '').split('—')[0])}</span>
-            ${ptBadge}
-          </div>
-        </div>
-      `;
-    }
-
-    function renderBattlefield() {
-      const myLayer = document.getElementById('my-cards-layer');
-      const rect = myLayer.getBoundingClientRect();
-      const layerW = Math.max(300, rect.width || 700);
-      const layerH = Math.max(180, rect.height || 260);
-
-      myLayer.innerHTML = '';
-
-      gameState.me.battlefield.forEach(card => {
-        const nx = typeof card.nx === 'number' ? card.nx : 0.05;
-        const ny = typeof card.ny === 'number' ? card.ny : 0.1;
-
-        const wrapper = document.createElement('div');
-        wrapper.className = `mtg-card absolute cursor-grab active:cursor-grabbing ${card.tapped ? 'is-tapped' : ''}`;
-        wrapper.style.left = `${Math.round(nx * layerW)}px`;
-        wrapper.style.top = `${Math.round(ny * layerH)}px`;
-        wrapper.innerHTML = createCardHTML(card);
-
-        let startX = 0, startY = 0, origPxX = nx * layerW, origPxY = ny * layerH, moved = false;
-
-        wrapper.addEventListener('pointerdown', (e) => {
-          e.stopPropagation();
-          const curRect = myLayer.getBoundingClientRect();
-          startX = e.clientX;
-          startY = e.clientY;
-          origPxX = (card.nx ?? 0.05) * curRect.width;
-          origPxY = (card.ny ?? 0.1) * curRect.height;
-          moved = false;
-          wrapper.classList.add('is-dragging');
-          wrapper.setPointerCapture(e.pointerId);
-        });
-
-        wrapper.addEventListener('pointermove', (e) => {
-          if (!wrapper.hasPointerCapture(e.pointerId)) return;
-          const dx = e.clientX - startX;
-          const dy = e.clientY - startY;
-          if (Math.abs(dx) > 6 || Math.abs(dy) > 6) moved = true;
-          if (moved) {
-            const curRect = myLayer.getBoundingClientRect();
-            const clampedX = Math.max(0, Math.min(curRect.width - 96, origPxX + dx));
-            const clampedY = Math.max(0, Math.min(curRect.height - 128, origPxY + dy));
-            card.nx = clampedX / Math.max(1, curRect.width);
-            card.ny = clampedY / Math.max(1, curRect.height);
-            wrapper.style.left = `${Math.round(clampedX)}px`;
-            wrapper.style.top = `${Math.round(clampedY)}px`;
-          }
-        });
-
-        wrapper.addEventListener('pointerup', () => {
-          wrapper.classList.remove('is-dragging');
-          if (!moved) {
-            card.tapped = !card.tapped;
-            wrapper.classList.toggle('is-tapped', card.tapped);
-            openCardInspector('battlefield', card.uid);
-          }
-          pushMyStateToCloud();
-        });
-
-        myLayer.appendChild(wrapper);
+    function playFromHand(uid) {
+      const idx = localState.hand.findIndex(c => c.uid === uid);
+      if (idx === -1) return;
+      const [card] = localState.hand.splice(idx, 1);
+      const myBoard = isHost ? localState.hostBoard : localState.guestBoard;
+      myBoard.push({
+        ...card,
+        x: 0.12 + (myBoard.length % 7) * 0.11,
+        y: 0.25,
+        tapped: false
       });
+      renderTable();
+      syncState();
+    }
 
-      // Render Opponent Battlefield (Mirrored Normalized Coordinates so both screens align)
-      const oppLayer = document.getElementById('opp-cards-layer');
-      const oppRect = oppLayer.getBoundingClientRect();
-      const oppW = Math.max(300, oppRect.width || 700);
-      const oppH = Math.max(150, oppRect.height || 220);
+    function untapAll() {
+      const myBoard = isHost ? localState.hostBoard : localState.guestBoard;
+      myBoard.forEach(c => c.tapped = false);
+      renderTable();
+      syncState();
+    }
 
-      oppLayer.innerHTML = '';
-      (gameState.opponent.battlefield || []).forEach(card => {
-        const nx = typeof card.nx === 'number' ? card.nx : 0.05;
-        const ny = typeof card.ny === 'number' ? card.ny : 0.1;
+    function renderTable() {
+      const oppName = isHost ? (currentRoom.guest_name || "Waiting for Seat 2...") : currentRoom.host_name;
+      document.getElementById("opp-label").textContent = oppName;
+      document.getElementById("opp-zone-label").textContent = `${oppName}'s Battlefield`;
+      document.getElementById("my-life").textContent = isHost ? localState.hostLife : localState.guestLife;
+      document.getElementById("opp-life").textContent = isHost ? localState.guestLife : localState.hostLife;
 
-        const wrapper = document.createElement('div');
-        wrapper.className = `mtg-card absolute cursor-pointer ${card.tapped ? 'is-tapped' : ''}`;
-        wrapper.style.left = `${Math.round(nx * oppW)}px`;
-        wrapper.style.top = `${Math.round((1 - ny) * Math.max(10, oppH - 128))}px`;
-        wrapper.innerHTML = createCardHTML(card);
-        wrapper.onclick = () => openCardInspector('opponent', card.uid);
-        oppLayer.appendChild(wrapper);
+      const myBoard = isHost ? localState.hostBoard : localState.guestBoard;
+      const oppBoard = isHost ? localState.guestBoard : localState.hostBoard;
+
+      renderZone("my-zone", myBoard, true);
+      renderZone("opp-zone", oppBoard, false);
+      renderHand();
+    }
+
+    function renderZone(zoneId, cards, interactive) {
+      const zone = document.getElementById(zoneId);
+      const label = zone.querySelector(".zone-label");
+      zone.innerHTML = "";
+      zone.appendChild(label);
+
+      const rect = zone.getBoundingClientRect();
+      cards.forEach(c => {
+        const el = document.createElement("div");
+        el.className = "card" + (c.tapped ? " tapped" : "");
+        el.style.left = `${(c.x || 0.1) * (rect.width || 800)}px`;
+        el.style.top = `${(c.y || 0.2) * (rect.height || 260)}px`;
+        el.innerHTML = `
+          <div>
+            <div class="card-name">${c.name}</div>
+            <div class="card-type">${c.type}</div>
+          </div>
+          <div class="card-pt">${c.pt}</div>
+        `;
+
+        if (interactive) {
+          let moved = false, startX = 0, startY = 0, origLeft = 0, origTop = 0;
+          el.onpointerdown = e => {
+            moved = false;
+            startX = e.clientX; startY = e.clientY;
+            origLeft = el.offsetLeft; origTop = el.offsetTop;
+            el.setPointerCapture(e.pointerId);
+          };
+          el.onpointermove = e => {
+            if (!el.hasPointerCapture(e.pointerId)) return;
+            const dx = e.clientX - startX, dy = e.clientY - startY;
+            if (Math.abs(dx) > 6 || Math.abs(dy) > 6) moved = true;
+            if (moved) {
+              el.style.left = `${Math.max(0, Math.min(rect.width - 86, origLeft + dx))}px`;
+              el.style.top = `${Math.max(0, Math.min(rect.height - 120, origTop + dy))}px`;
+            }
+          };
+          el.onpointerup = e => {
+            if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+            if (!moved) {
+              c.tapped = !c.tapped;
+            } else {
+              c.x = el.offsetLeft / (rect.width || 800);
+              c.y = el.offsetTop / (rect.height || 260);
+            }
+            renderTable();
+            syncState();
+          };
+        }
+        zone.appendChild(el);
       });
     }
 
     function renderHand() {
-      const container = document.getElementById('hand-container');
-      container.innerHTML = '';
-
-      gameState.me.hand.forEach(card => {
-        const el = document.createElement('div');
-        el.className = 'shrink-0 cursor-pointer transition-transform hover:-translate-y-1 active:scale-95';
-        el.innerHTML = createCardHTML(card);
-        el.onclick = () => openCardInspector('hand', card.uid);
-        container.appendChild(el);
-      });
-    }
-
-    function renderLogs() {
-      const logBox = document.getElementById('game-log');
-      logBox.innerHTML = gameState.logs.map(line => `<div class="leading-tight">${escapeHtml(line)}</div>`).join('');
-    }
-
-    // =========================================================================
-    // 10. ZONE VIEWER, TOKENS & SCRYFALL DECK IMPORTER
-    // =========================================================================
-    window.openZoneModal = function (zoneName) {
-      const modal = document.getElementById('modal-zone');
-      const title = document.getElementById('zone-modal-title');
-      const grid = document.getElementById('zone-modal-grid');
-      const shuffleBtn = document.getElementById('btn-zone-shuffle');
-
-      const list = gameState.me[zoneName] || [];
-      title.textContent = `${zoneName} (${list.length} cards)`;
-      shuffleBtn.classList.toggle('hidden', zoneName !== 'library');
-
-      grid.innerHTML = list.length === 0
-        ? `<div class="col-span-full text-center py-8 text-xs text-slate-500">No cards in ${zoneName}.</div>`
-        : list.map((card, idx) => `
-          <div class="bg-obsidian-950 border border-slate-800 rounded-xl p-2 flex flex-col items-center gap-2">
-            ${createCardHTML(card)}
-            <div class="flex gap-1 w-full">
-              <button onclick="retrieveFromZone('${zoneName}', ${idx}, 'hand')" class="flex-1 py-1 rounded bg-sky-500/20 text-sky-300 text-[10px] font-semibold">To Hand</button>
-              <button onclick="retrieveFromZone('${zoneName}', ${idx}, 'battlefield')" class="flex-1 py-1 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold">Play</button>
-            </div>
+      const bar = document.getElementById("hand-bar");
+      bar.innerHTML = localState.hand.map(c => `
+        <div class="hand-card" onclick="playFromHand('${c.uid}')">
+          <div>
+            <div class="card-name">${c.name}</div>
+            <div class="card-type">${c.type}</div>
           </div>
-        `).join('');
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:10px; color:var(--accent);">Tap to Play</span>
+            <span class="card-pt">${c.pt}</span>
+          </div>
+        </div>
+      `).join("");
+    }
 
-      modal.classList.remove('hidden');
-    };
-
-    window.retrieveFromZone = function (zoneName, index, destination) {
-      const list = gameState.me[zoneName];
-      if (!list || !list[index]) return;
-      const [card] = list.splice(index, 1);
-      if (destination === 'hand') {
-        gameState.me.hand.push(card);
-      } else {
-        card.nx = 0.04 + (gameState.me.battlefield.length % 6) * 0.14;
-        card.ny = 0.12;
-        gameState.me.battlefield.push(card);
-      }
-      openZoneModal(zoneName);
-      renderAll();
-      addLog(`${gameState.me.name} moved ${card.name} from ${zoneName} to ${destination}.`);
-    };
-
-    window.spawnToken = function (name, type, text, pt, color) {
-      const count = gameState.me.battlefield.length;
-      gameState.me.battlefield.push({
-        uid: uid(),
-        name: name + ' Token',
-        cost: '',
-        type,
-        color,
-        pt,
-        text,
-        tapped: false,
-        counters: 0,
-        nx: 0.04 + (count % 7) * 0.13,
-        ny: 0.14
-      });
-      closeModal('modal-tokens');
-      renderBattlefield();
-      addLog(`${gameState.me.name} created a ${pt ? pt + ' ' : ''}${name} token.`);
-    };
-
-    window.spawnCustomToken = function () {
-      const name = document.getElementById('custom-tok-name').value.trim() || 'Elemental';
-      const pt = document.getElementById('custom-tok-pt').value.trim() || '2/2';
-      spawnToken(name, `Creature Token — ${name}`, '', pt, '#fbbf24');
-    };
-
-    window.importCustomDecklist = async function () {
-      const deckName = document.getElementById('custom-deck-name').value.trim() || 'Custom Deck';
-      const rawText = document.getElementById('custom-deck-list').value.trim();
-      const progressEl = document.getElementById('scryfall-progress');
-      const btn = document.getElementById('btn-import-deck');
-
-      if (!rawText) return showToast('Enter at least one card line');
-      btn.disabled = true;
-
-      const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
-      const parsedCards = [];
-
-      for (let i = 0; i < lines.length; i++) {
-        const match = lines[i].match(/^(\d+)x?\s+(.+)$/i);
-        const count = match ? parseInt(match[1], 10) : 1;
-        const cardName = match ? match[2].trim() : lines[i];
-
-        progressEl.textContent = `Fetching ${cardName} (${i + 1}/${lines.length})...`;
-
-        let cardMeta = {
-          count,
-          name: cardName,
-          cost: '',
-          type: 'Spell',
-          color: '#fbbf24',
-          pt: '',
-          text: 'Custom imported card.',
-          image: ''
-        };
-
-        try {
-          const resp = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`);
-          if (resp.ok) {
-            const data = await resp.json();
-            const colorMap = { W: '#fef3c7', U: '#38bdf8', B: '#64748b', R: '#ef4444', G: '#4ade80' };
-            const firstColor = (data.colors && data.colors[0]) || (data.color_identity && data.color_identity[0]);
-            cardMeta = {
-              count,
-              name: data.name,
-              cost: data.mana_cost || '',
-              type: data.type_line || 'Card',
-              color: colorMap[firstColor] || '#cbd5e1',
-              pt: data.power ? `${data.power}/${data.toughness}` : (data.loyalty || ''),
-              text: data.oracle_text || '',
-              image: (data.image_uris && data.image_uris.art_crop) || (data.card_faces && data.card_faces[0].image_uris && data.card_faces[0].image_uris.art_crop) || ''
-            };
-          }
-        } catch (e) {}
-
-        parsedCards.push(cardMeta);
-      }
-
-      const key = 'custom_' + Date.now();
-      customDecksMemory[key] = { name: deckName, cards: parsedCards };
-
-      const select = document.getElementById('lobby-deck-select');
-      const opt = document.createElement('option');
-      opt.value = key;
-      opt.textContent = `${deckName} (Custom)`;
-      select.appendChild(opt);
-      select.value = key;
-
-      progressEl.textContent = '';
-      btn.disabled = false;
-      closeModal('modal-deckbuilder');
-      showToast(`Imported "${deckName}"!`);
-    };
-
-    // =========================================================================
-    // 11. MODAL & CLIPBOARD HELPERS
-    // =========================================================================
-    window.openModal = function (id) {
-      document.getElementById(id).classList.remove('hidden');
-    };
-
-    window.closeModal = function (id) {
-      document.getElementById(id).classList.add('hidden');
-    };
-
-    window.copyInputText = function (elementId, toastMsg) {
-      const el = document.getElementById(elementId);
-      el.select();
-      el.setSelectionRange(0, 99999);
-      document.execCommand('copy');
-      showToast(toastMsg);
-    };
-
-    // Resize listener to keep normalized card positions accurate
-    window.addEventListener('resize', () => {
-      if (!document.getElementById('table-view').classList.contains('hidden')) {
-        renderBattlefield();
-      }
-    });
-
-    // Initialize Lobby & Cloud Auth on Load
-    window.onload = function () {
-      randomizeRoomCode();
-      initCloudBackend();
-
-      // Auto-fill Room Code if user arrived via #room=ROOMCODE or #join=ROOMCODE link
-      if (window.location.hash && (window.location.hash.startsWith('#room=') || window.location.hash.startsWith('#join='))) {
-        const code = window.location.hash.replace(/^#(room|join)=/, '').toUpperCase();
-        document.getElementById('lobby-room-code').value = code;
-        document.getElementById('lobby-seat').value = 'auto';
-        showToast(`Ready to join Table #${code}! Enter your handle & tap Login.`);
-      }
-    };
+    // Auto-restore session on reload
+    (async () => {
+      if (!sb) return;
+      const { data } = await sb.auth.getSession();
+      if (data?.session?.user) onSignedIn(data.session.user);
+    })();
   </script>
 </body>
 </html>
