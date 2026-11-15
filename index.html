@@ -6,6 +6,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="AetherTable" />
+  <link id="apple-icon" rel="apple-touch-icon" sizes="512x512" href="" />
+  <link id="pwa-manifest" rel="manifest" href="" />
   <title>AetherTable MTG</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -108,7 +110,6 @@
         repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 40px, transparent 40px, transparent 80px);
       display: flex; justify-content: space-between; align-items: center;
     }
-    /* Wall Window */
     .wall-window {
       width: 190px; height: 135px; border-radius: 12px;
       background: linear-gradient(180deg, #0c192c 0%, #1e3a5f 65%, #f59e0b 140%);
@@ -120,7 +121,6 @@
       background: linear-gradient(90deg, transparent 48%, #2b1d14 48%, #2b1d14 52%, transparent 52%),
                   linear-gradient(0deg, transparent 48%, #2b1d14 48%, #2b1d14 52%, transparent 52%);
     }
-    /* Wall Corkboard & Trophy Plaque */
     .wall-plaque {
       width: 250px; height: 132px; border-radius: 14px;
       background: linear-gradient(145deg, #2b1d12, #1a110a);
@@ -135,7 +135,6 @@
     .mini-box { width: 34px; height: 52px; border-radius: 5px; border: 1.5px solid rgba(255,255,255,0.25); }
     .shelf-plank { height: 12px; background: #3b2416; border-radius: 4px; box-shadow: 0 8px 14px rgba(0,0,0,0.7); }
 
-    /* Wooden Desk Surface */
     .desk-surface {
       flex: 1; position: relative;
       background:
@@ -147,7 +146,6 @@
       padding: 12px 24px 22px; gap: 16px;
     }
 
-    /* Desk Prop 1: iPad / Event Computer */
     .prop-ipad {
       width: 220px; height: 158px; border-radius: 16px;
       background: #090d14; border: 6px solid #334155;
@@ -162,10 +160,7 @@
       border: 1px solid rgba(56, 189, 248, 0.4);
     }
 
-    /* Desk Prop 2: Collection Binder & Card Stacks */
-    .prop-binder-cluster {
-      display: flex; align-items: center; gap: 14px;
-    }
+    .prop-binder-cluster { display: flex; align-items: center; gap: 14px; }
     .leather-binder {
       width: 146px; height: 174px; border-radius: 8px 16px 16px 8px;
       background: linear-gradient(135deg, #7c2d12, #431407);
@@ -183,7 +178,6 @@
       transform: rotate(-4deg);
     }
 
-    /* Desk Prop 3: Desk Mailbox */
     .prop-mailbox {
       width: 136px; height: 152px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
     }
@@ -202,7 +196,6 @@
     .mail-flag.down { transform: rotate(90deg); background: #64748b; }
     .mailbox-post { width: 22px; height: 42px; background: #2b1a0e; }
 
-    /* Desk Prop 4: Car Keys & Road Map to Store */
     .prop-travel-keys {
       width: 168px; height: 148px; border-radius: 14px;
       background: linear-gradient(135deg, #1e293b, #0f172a);
@@ -227,7 +220,6 @@
         linear-gradient(180deg, #0b111e, #162033);
       display: flex; justify-content: space-between; align-items: center; gap: 16px;
     }
-    /* Neon Store Sign */
     .neon-sign {
       padding: 12px 20px; border-radius: 14px;
       background: rgba(9, 13, 22, 0.9);
@@ -235,22 +227,18 @@
       box-shadow: 0 0 24px rgba(56, 189, 248, 0.4), inset 0 0 14px rgba(56, 189, 248, 0.25);
       text-align: center;
     }
-    /* Tournament Kiosk Monitor */
     .prop-kiosk {
       width: 260px; height: 145px; border-radius: 14px;
       background: #090d16; border: 4px solid var(--gold);
       box-shadow: 0 0 26px rgba(245, 158, 11, 0.35);
       padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between;
     }
-
-    /* Store Floor & Glass Display Counter */
     .store-floor {
       flex: 1; background: linear-gradient(180deg, #1b2434 0%, #0d121b 100%);
       border-top: 6px solid #334155;
       padding: 14px 24px 22px;
       display: flex; align-items: center; justify-content: space-around; gap: 18px;
     }
-    /* Glass Booster Display Case */
     .prop-glass-case {
       width: 250px; height: 168px; border-radius: 14px;
       background: linear-gradient(145deg, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.92));
@@ -265,8 +253,6 @@
       border: 1.5px solid #fde68a; display: flex; align-items: center; justify-content: center;
       font-size: 18px; box-shadow: 0 6px 12px rgba(0,0,0,0.6);
     }
-
-    /* Store Play Tables */
     .prop-play-tables {
       width: 280px; height: 168px; border-radius: 16px;
       background: linear-gradient(145deg, #133827, #091d14);
@@ -476,11 +462,9 @@
       </div>
     </div>
 
-    <!-- Room Back Wall (Window, Trophy Ranking Plaque, Card Shelf) -->
     <div class="room-wall">
       <div class="wall-window"></div>
 
-      <!-- Interactive Trophy & State/USA Ranking Plaque -->
       <div class="prop-item wall-plaque" onclick="openRankingsModal()">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span style="font-size:11px; font-weight:900; color:var(--gold); letter-spacing:0.6px;">🏆 STANDINGS PLAQUE</span>
@@ -491,7 +475,6 @@
         <div class="prop-tag">🏆 State & USA Rankings</div>
       </div>
 
-      <!-- Decorative Deck Box Shelf -->
       <div class="wall-shelf">
         <div class="shelf-items">
           <div class="mini-box" style="background:#991b1b;"></div>
@@ -503,9 +486,7 @@
       </div>
     </div>
 
-    <!-- Mahogany Desk Surface with Interactive Physical Objects -->
     <div class="desk-surface">
-      <!-- Object 1: iPad / Event Computer -->
       <div class="prop-item prop-ipad" onclick="openTournamentTabletModal()">
         <div class="ipad-screen">
           <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--cyan); font-weight:800;">
@@ -520,7 +501,6 @@
         <div class="prop-tag">📱 Tournament iPad</div>
       </div>
 
-      <!-- Object 2: Collection Binder & Active Deck Stack -->
       <div class="prop-binder-cluster">
         <div class="prop-item leather-binder" onclick="openBinderModal()">
           <div style="font-size:11px; font-weight:900; color:var(--gold); letter-spacing:0.5px;">COLLECTION</div>
@@ -537,7 +517,6 @@
         </div>
       </div>
 
-      <!-- Object 3: Desk Mailbox (Daily Gold & Booster Deliveries) -->
       <div class="prop-item prop-mailbox" onclick="openMailboxModal()">
         <div class="notif-dot" id="mail-badge">1</div>
         <div class="mailbox-body">
@@ -548,7 +527,6 @@
         <div class="prop-tag">📬 Mailbox</div>
       </div>
 
-      <!-- Object 4: Car Keys & GPS Map to Travel to Store -->
       <div class="prop-item prop-travel-keys" onclick="openTravelModal()">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span style="font-size:10px; font-weight:900; color:var(--emerald);">🗺️ STORE GPS</span>
@@ -575,7 +553,6 @@
       </div>
     </div>
 
-    <!-- Store Back Wall: Neon Sign & Tournament Registration Kiosk -->
     <div class="store-backwall">
       <div class="neon-sign">
         <div style="font-size:10px; color:var(--cyan); letter-spacing:1.2px; font-weight:800;">OFFICIAL LGS VENUE</div>
@@ -583,7 +560,6 @@
         <div style="font-size:11px; color:var(--muted);" id="store-neon-city">Midway / Tallahassee, FL</div>
       </div>
 
-      <!-- Interactive Tournament Kiosk -->
       <div class="prop-item prop-kiosk" onclick="openStoreTournamentModal()">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span style="font-size:11px; font-weight:900; color:var(--gold);">🏆 TOURNAMENT KIOSK</span>
@@ -597,9 +573,7 @@
       <button class="btn-ghost" onclick="openTravelModal()">🗺️ Switch Store</button>
     </div>
 
-    <!-- Store Floor: Glass Booster Counter + Open Multiplayer Play Tables -->
     <div class="store-floor">
-      <!-- Glass Display Counter (Buy Booster Packs with Gold) -->
       <div class="prop-item prop-glass-case" onclick="openBoosterShopModal()">
         <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; color:#93c5fd;">
           <span>💎 DISPLAY COUNTER</span>
@@ -614,7 +588,6 @@
         <div class="prop-tag">🛒 Booster Counter</div>
       </div>
 
-      <!-- Open Multiplayer Play Tables -->
       <div class="prop-item prop-play-tables" onclick="openMultiplayerTablesModal()">
         <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; color:var(--emerald);">
           <span>⚔️ FEATURE TABLES</span>
@@ -692,6 +665,88 @@
   </div>
 
   <script>
+    // GENERATE HIGH-RES CUSTOM HOME SCREEN LOGO (512x512 PNG)
+    (function buildCustomAppLogo() {
+      const c = document.createElement("canvas");
+      c.width = 512; c.height = 512;
+      const ctx = c.getContext("2d");
+
+      const bg = ctx.createRadialGradient(256, 210, 40, 256, 256, 360);
+      bg.addColorStop(0, "#1e293b");
+      bg.addColorStop(0.55, "#0f172a");
+      bg.addColorStop(1, "#05070b");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, 512, 512);
+
+      ctx.strokeStyle = "#f59e0b";
+      ctx.lineWidth = 14;
+      ctx.strokeRect(24, 24, 464, 464);
+      ctx.strokeStyle = "rgba(251, 191, 36, 0.35)";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(42, 42, 428, 428);
+
+      const pips = ["#fef08a", "#38bdf8", "#a855f7", "#ef4444", "#22c55e"];
+      pips.forEach((color, i) => {
+        const angle = (-90 + (i - 2) * 32) * (Math.PI / 180);
+        const px = 256 + Math.cos(angle) * 145;
+        const py = 245 + Math.sin(angle) * 145;
+        ctx.beginPath();
+        ctx.arc(px, py, 16, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 18;
+        ctx.fill();
+      });
+      ctx.shadowBlur = 0;
+
+      const gem = ctx.createLinearGradient(256, 135, 256, 355);
+      gem.addColorStop(0, "#fde68a");
+      gem.addColorStop(0.45, "#f59e0b");
+      gem.addColorStop(1, "#b45309");
+      ctx.fillStyle = gem;
+      ctx.beginPath();
+      ctx.moveTo(256, 130);
+      ctx.lineTo(348, 245);
+      ctx.lineTo(256, 360);
+      ctx.lineTo(164, 245);
+      ctx.closePath();
+      ctx.shadowColor = "rgba(245, 158, 11, 0.75)";
+      ctx.shadowBlur = 28;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.32)";
+      ctx.beginPath();
+      ctx.moveTo(256, 130);
+      ctx.lineTo(348, 245);
+      ctx.lineTo(256, 245);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#f8fafc";
+      ctx.font = "900 44px -apple-system, BlinkMacSystemFont, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("AETHERTABLE", 256, 434);
+
+      const pngUrl = c.toDataURL("image/png");
+      const appleLink = document.getElementById("apple-icon");
+      if (appleLink) appleLink.href = pngUrl;
+
+      const manifest = {
+        name: "AetherTable MTG",
+        short_name: "AetherTable",
+        start_url: "./",
+        display: "standalone",
+        background_color: "#070a0f",
+        theme_color: "#070a0f",
+        icons: [{ src: pngUrl, sizes: "512x512", type: "image/png" }]
+      };
+      const manifestLink = document.getElementById("pwa-manifest");
+      if (manifestLink) {
+        manifestLink.href = "data:application/manifest+json," + encodeURIComponent(JSON.stringify(manifest));
+      }
+    })();
+
     const SUPABASE_URL = "https://fwpnbbkyhugzppclsgbl.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_QU5rvS7F-VfmocfgP1SqKw_gymqv9bQ";
     const sb = SUPABASE_URL.startsWith("http") ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
@@ -899,12 +954,10 @@
       document.getElementById("desk-state-pill").textContent = userProfile.state;
       document.getElementById("plaque-player-name").textContent = userProfile.name;
 
-      // Compute State Rank
       const stateList = [...NPC_LEADERBOARD.filter(p => p.state === userProfile.state), { name: userProfile.name, rp: userProfile.rp }].sort((a, b) => b.rp - a.rp);
       const myRank = stateList.findIndex(p => p.name === userProfile.name) + 1;
       document.getElementById("plaque-state-tag").textContent = `${userProfile.state} #${myRank}`;
 
-      // Mailbox Flag
       const badge = document.getElementById("mail-badge");
       const flag = document.getElementById("mail-flag");
       if (userProfile.hasMail) {
@@ -915,7 +968,6 @@
         flag.classList.add("down");
       }
 
-      // Store Visual Labels
       const store = STORES[selectedStoreIdx] || STORES[0];
       document.getElementById("store-top-title").textContent = store.name;
       document.getElementById("store-neon-name").textContent = store.name.toUpperCase();
@@ -926,9 +978,6 @@
       document.getElementById("kiosk-run-status").textContent = userProfile.activeTourney ? "ACTIVE RUN" : "OPEN";
     }
 
-    /* =========================================
-       HOME DESK OBJECT MODALS
-       ========================================= */
     function openTournamentTabletModal() {
       const box = document.getElementById("modal-content");
       box.innerHTML = `
@@ -1112,9 +1161,6 @@
       goScene("store");
     }
 
-    /* =========================================
-       STORE OBJECT MODALS
-       ========================================= */
     function openStoreTournamentModal() {
       const store = STORES[selectedStoreIdx] || STORES[0];
       const box = document.getElementById("modal-content");
@@ -1194,9 +1240,6 @@
       document.getElementById("modal-backdrop").classList.remove("hidden");
     }
 
-    /* =========================================
-       TOURNAMENTS, MULTIPLAYER & ARENA GAMEPLAY
-       ========================================= */
     function enterOrContinueTournament(eventId) {
       const store = STORES[selectedStoreIdx];
       const ev = store.events.find(e => e.id === eventId);
