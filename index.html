@@ -10,179 +10,315 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --felt-top: #123826;
-      --felt-bot: #081c14;
-      --panel: #10161d;
-      --panel-2: #18212c;
-      --border: #2a394a;
-      --accent: #f59e0b;
-      --teal: #14b8a6;
-      --crimson: #bf3333;
-      --text: #f3f4f6;
-      --muted: #9ca3af;
-      --ok: #22c55e;
+      --bg-void: #070a0f;
+      --arena-stone: #131923;
+      --arena-rim: #2c384b;
+      --gold: #f59e0b;
+      --cyan: #38bdf8;
+      --emerald: #10b981;
+      --crimson: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100dvh;
       overflow: hidden; position: fixed; overscroll-behavior: none;
-      background: linear-gradient(180deg, var(--felt-top) 0%, var(--felt-bot) 100%);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: var(--bg-void); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
       padding-left: env(safe-area-inset-left);
       padding-right: env(safe-area-inset-right);
     }
-    input, select, textarea { user-select: text; font-size: 16px !important; }
-    button { cursor: pointer; font-family: inherit; border: none; border-radius: 10px; font-weight: 600; transition: transform 0.08s; }
-    button:active { transform: scale(0.96); }
+    input { user-select: text; font-size: 16px !important; }
+    button { cursor: pointer; font-family: inherit; border: none; font-weight: 700; transition: transform 0.1s, filter 0.15s; }
+    button:active { transform: scale(0.95); }
     .hidden { display: none !important; }
 
-    /* HOME WALL / LOGIN BOX */
+    /* HOME WALL */
     #home-wall {
       width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(circle at 50% 20%, #1c2738 0%, #070a0f 75%);
       padding: 18px;
     }
     .wall-box {
-      width: 100%; max-width: 920px; background: rgba(16, 22, 29, 0.94);
-      backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 22px;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.65);
+      width: 100%; max-width: 920px; background: rgba(19, 25, 35, 0.95);
+      border: 1px solid var(--arena-rim); border-radius: 22px;
+      box-shadow: 0 30px 70px rgba(0,0,0,0.75);
       display: grid; grid-template-columns: 330px 1fr; overflow: hidden; min-height: 490px;
     }
     .auth-col {
-      padding: 24px; background: var(--panel-2); border-right: 1px solid var(--border);
+      padding: 24px; background: #0f141c; border-right: 1px solid var(--arena-rim);
       display: flex; flex-direction: column; justify-content: space-between;
     }
-    .brand { font-size: 21px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-    .brand span { color: var(--accent); }
-    .tabs { display: flex; gap: 6px; background: #0c1117; padding: 4px; border-radius: 10px; margin: 14px 0; }
-    .tab-btn { flex: 1; padding: 8px; background: transparent; color: var(--muted); font-size: 13px; }
-    .tab-btn.active { background: var(--panel-2); color: var(--text); }
+    .brand { font-size: 22px; font-weight: 900; letter-spacing: 0.4px; }
+    .brand span { color: var(--gold); }
+    .tabs { display: flex; gap: 6px; background: #070a0f; padding: 4px; border-radius: 10px; margin: 14px 0; }
+    .tab-btn { flex: 1; padding: 8px; background: transparent; color: var(--muted); font-size: 13px; border-radius: 8px; }
+    .tab-btn.active { background: #1e293b; color: var(--text); }
     .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
     .field label { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
     .field input {
-      background: #0c1117; border: 1px solid var(--border); color: var(--text);
+      background: #070a0f; border: 1px solid var(--arena-rim); color: var(--text);
       padding: 10px 12px; border-radius: 10px; outline: none;
     }
-    .btn-primary { background: var(--accent); color: #111827; padding: 11px 14px; width: 100%; font-size: 14px; }
-    .btn-secondary { background: rgba(255,255,255,0.08); color: var(--text); border: 1px solid var(--border); padding: 8px 12px; font-size: 13px; }
+    .btn-gold { background: linear-gradient(135deg, #fbbf24, #d97706); color: #0f172a; padding: 11px 14px; width: 100%; border-radius: 10px; font-size: 14px; }
+    .btn-ghost { background: rgba(255,255,255,0.07); color: var(--text); border: 1px solid var(--arena-rim); padding: 8px 12px; border-radius: 10px; font-size: 13px; }
     .status-msg { font-size: 12px; min-height: 18px; margin-top: 8px; }
-
     .lobby-col { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
     .room-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
     .room-card {
-      background: rgba(12,17,23,0.85); border: 1px solid var(--border); border-radius: 12px;
+      background: #0b0f16; border: 1px solid var(--arena-rim); border-radius: 12px;
       padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;
     }
 
-    /* SWIFT-STYLE GAMEBOARD */
-    #game-board { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
-    .player-bar {
-      height: 64px; padding: 0 18px; display: flex; align-items: center; justify-content: space-between;
-      position: relative; z-index: 10;
+    /* ARENA TABLETOP */
+    #arena-board {
+      width: 100%; height: 100%; position: relative; overflow: hidden;
+      background:
+        radial-gradient(ellipse at 50% 50%, rgba(30, 58, 95, 0.35) 0%, rgba(7, 10, 15, 0.96) 78%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 10px);
+      display: flex; flex-direction: column; justify-content: space-between;
     }
-    .bar-left, .bar-right { display: flex; align-items: center; gap: 10px; }
-    .info-pill {
-      background: rgba(0,0,0,0.42); border: 1px solid rgba(255,255,255,0.12);
-      padding: 6px 11px; border-radius: 999px; font-size: 13px; display: flex; align-items: center; gap: 8px;
-      color: var(--text);
-    }
-    .opp-hand-backs { display: flex; margin-left: 4px; }
-    .card-back-mini {
-      width: 18px; height: 26px; border-radius: 3px; background: linear-gradient(135deg, #3b2618, #1e130c);
-      border: 1px solid #855834; margin-left: -8px;
-    }
-    .life-die {
-      position: absolute; left: 50%; transform: translateX(-50%);
-      padding: 6px 16px; border-radius: 14px; font-weight: 800; font-size: 18px;
-      display: flex; align-items: center; gap: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.45);
-      border: 2px solid rgba(255,255,255,0.2); cursor: pointer;
-    }
-    .life-die.human { background: var(--teal); color: #042f2e; }
-    .life-die.opp { background: var(--crimson); color: #fff; }
+    #arena-board.shake { animation: boardShake 0.32s ease; }
 
-    /* BATTLEFIELD & 3D PERSPECTIVE TOGGLE */
-    .table-stage {
-      flex: 1; display: flex; flex-direction: column; justify-content: space-between;
-      position: relative; overflow: hidden; transition: transform 0.35s ease;
-    }
-    .table-stage.mode-3d {
-      transform: perspective(1150px) rotateX(18deg) scale(0.96);
-      transform-origin: center 55%;
-    }
-    .bf-row {
-      flex: 1; display: flex; align-items: center; gap: 8px; padding: 4px 16px;
-      overflow-x: auto; position: relative;
+    /* Engraved Arena Playmat Surface */
+    .playmat-plane {
+      position: absolute; inset: 46px 84px 104px 84px;
+      background: radial-gradient(circle at 50% 50%, #162836 0%, #0d1722 70%, #091018 100%);
+      border: 2px solid rgba(148, 163, 184, 0.18);
+      border-radius: 26px;
+      box-shadow: inset 0 0 60px rgba(0,0,0,0.85), 0 20px 50px rgba(0,0,0,0.7);
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 10px 18px;
+      transform: perspective(1200px) rotateX(10deg);
+      transform-origin: center 54%;
     }
 
-    /* CENTER BAR */
-    .center-bar {
-      margin: 0 12px; padding: 7px 12px; border-radius: 12px;
-      background: rgba(0,0,0,0.42); border: 1px solid rgba(255,255,255,0.1);
-      display: flex; align-items: center; gap: 12px; z-index: 8; min-height: 50px;
+    /* Center Combat Divider & Phase Strip */
+    .combat-divider {
+      height: 36px; display: flex; align-items: center; justify-content: space-between;
+      border-top: 1px solid rgba(56, 189, 248, 0.18);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.18);
+      background: linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.85), transparent);
+      padding: 0 12px; position: relative; z-index: 6;
     }
-    .turn-box { width: 155px; flex-shrink: 0; }
-    .turn-box .sub { font-size: 11px; color: var(--muted); }
-    .turn-box .step { font-size: 14px; font-weight: 800; }
-    .stack-box { flex: 1; max-width: 240px; display: flex; align-items: center; gap: 6px; overflow-x: auto; font-size: 12px; }
-    .log-preview {
-      flex: 1; max-width: 300px; font-size: 11px; color: #d1d5db; line-height: 1.25;
-      cursor: pointer; overflow: hidden;
+    .phase-track { display: flex; align-items: center; gap: 6px; margin: 0 auto; }
+    .phase-pip {
+      padding: 3px 9px; border-radius: 999px; font-size: 10px; font-weight: 800;
+      letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted);
+      background: rgba(255,255,255,0.04); border: 1px solid transparent;
+      transition: all 0.2s ease;
     }
-    .log-preview div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .action-btn {
-      background: #2563eb; color: #fff; padding: 9px 15px; border-radius: 10px;
-      font-size: 13px; font-weight: 700; white-space: nowrap;
+    .phase-pip.active {
+      color: #0f172a; background: var(--cyan);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.7);
     }
-    .action-btn.attack { background: #dc2626; }
+    .phase-pip.combat.active {
+      color: #fff; background: var(--crimson);
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.8);
+    }
 
-    /* CARDS WITH SCRYFALL ARTWORK */
-    .perm-card {
-      width: 84px; height: 116px; border-radius: 8px; flex-shrink: 0;
-      background: #141a24; border: 2px solid #4b5563;
-      overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.55); transition: transform 0.16s ease; position: relative;
+    /* Two-Row Battlefield Zones */
+    .side-half { flex: 1; display: flex; flex-direction: column; justify-content: space-around; gap: 4px; }
+    .row-strip {
+      min-height: 82px; display: flex; align-items: center; justify-content: center;
+      gap: 10px; padding: 2px 12px;
     }
-    .perm-card.tapped { transform: rotate(90deg); margin: 0 16px; border-color: var(--accent); }
-    .perm-card.attacking { border-color: #ef4444; box-shadow: 0 0 14px rgba(239,68,68,0.65); }
-    .hand-fan {
-      height: 132px; display: flex; align-items: flex-end; justify-content: center;
-      gap: 6px; padding: 6px 14px 4px; overflow-x: auto; z-index: 12;
+    .row-strip.backrow { min-height: 62px; opacity: 0.95; }
+
+    /* Arena Permanent Cards */
+    .arena-card {
+      width: 74px; height: 96px; border-radius: 9px; position: relative;
+      background: #0f172a; border: 2px solid #475569; overflow: hidden;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.65);
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s, border-color 0.2s;
+      animation: cardSlam 0.26s cubic-bezier(0.2, 1.35, 0.4, 1);
+    }
+    .arena-card.land { width: 64px; height: 78px; border-radius: 7px; }
+    .arena-card.tapped { transform: rotate(78deg) scale(0.94); border-color: var(--gold); filter: brightness(0.85); }
+    .arena-card.attacking {
+      transform: translateY(-16px) scale(1.06);
+      border-color: var(--crimson);
+      box-shadow: 0 0 22px rgba(239, 68, 68, 0.85);
+      z-index: 10;
+    }
+    .arena-card.opp-attacking {
+      transform: translateY(16px) scale(1.06);
+      border-color: var(--crimson);
+      box-shadow: 0 0 22px rgba(239, 68, 68, 0.85);
+    }
+    .stack-count {
+      position: absolute; top: 4px; right: 4px; z-index: 4;
+      background: rgba(15, 23, 42, 0.92); border: 1px solid var(--gold);
+      color: var(--gold); font-size: 10px; font-weight: 900;
+      padding: 1px 5px; border-radius: 6px;
+    }
+    .art-fill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+    .card-plate-top {
+      position: relative; z-index: 2; padding: 3px 5px; font-size: 9.5px; font-weight: 800;
+      background: linear-gradient(180deg, rgba(0,0,0,0.88), transparent);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .pt-shield {
+      position: absolute; bottom: 4px; right: 4px; z-index: 3;
+      background: linear-gradient(135deg, #1e293b, #090d16);
+      border: 1.5px solid #94a3b8; border-radius: 6px;
+      padding: 1px 6px; font-size: 11px; font-weight: 900;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+    }
+
+    /* PLANESWALKER AVATARS & LIFE ORBS */
+    .avatar-pod {
+      position: absolute; left: 50%; transform: translateX(-50%); z-index: 20;
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(180deg, #1e293b, #0b111a);
+      border: 2px solid var(--arena-rim); padding: 4px 14px 4px 6px;
+      border-radius: 999px; box-shadow: 0 8px 24px rgba(0,0,0,0.75);
+      cursor: pointer;
+    }
+    .avatar-pod.top { top: 8px; }
+    .avatar-pod.bot { bottom: 112px; }
+    .life-orb {
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; font-weight: 900; color: #fff;
+      box-shadow: inset 0 -4px 8px rgba(0,0,0,0.5), 0 0 14px rgba(56, 189, 248, 0.5);
+    }
+    .life-orb.human { background: radial-gradient(circle at 35% 30%, #38bdf8, #0369a1); }
+    .life-orb.opp { background: radial-gradient(circle at 35% 30%, #f87171, #991b1b); box-shadow: inset 0 -4px 8px rgba(0,0,0,0.5), 0 0 14px rgba(239, 68, 68, 0.5); }
+    .avatar-meta { display: flex; flex-direction: column; }
+    .avatar-name { font-size: 12px; font-weight: 800; }
+    .avatar-sub { font-size: 10px; color: var(--muted); }
+
+    /* CORNER ZONE PILES (Library & Graveyard) */
+    .zone-corner {
+      position: absolute; width: 64px; display: flex; flex-direction: column; gap: 8px; z-index: 15;
+    }
+    .zone-corner.opp-left { top: 54px; left: 12px; }
+    .zone-corner.human-right { bottom: 118px; right: 12px; }
+    .deck-box {
+      height: 76px; border-radius: 8px;
+      background: linear-gradient(145deg, #3b2618, #1a100a);
+      border: 2px solid #855834;
+      box-shadow: 0 4px 0 #26180f, 0 8px 16px rgba(0,0,0,0.7);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 900; color: #fde68a;
+    }
+    .gy-box {
+      height: 44px; border-radius: 8px; background: rgba(15, 23, 42, 0.85);
+      border: 1px dashed #475569; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: var(--muted); font-weight: 700;
+    }
+
+    /* OPPONENT HAND FAN & HUMAN CURVED HAND FAN */
+    .opp-fan {
+      position: absolute; top: -18px; left: 110px; display: flex; z-index: 14;
+    }
+    .opp-card-back {
+      width: 34px; height: 48px; border-radius: 5px;
+      background: linear-gradient(135deg, #432818, #1f1209);
+      border: 1.5px solid #9c6644; margin-left: -12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    }
+
+    .hand-dock {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 114px;
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 0 150px 4px; z-index: 25; pointer-events: none;
     }
     .hand-card {
-      width: 92px; height: 126px; border-radius: 8px; flex-shrink: 0;
-      background: #161d29; border: 2px solid #475569;
+      width: 92px; height: 126px; border-radius: 9px; flex-shrink: 0;
+      background: #0f172a; border: 2px solid #475569;
       overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;
-      transition: transform 0.14s ease; position: relative;
+      position: relative; margin: 0 -6px; pointer-events: auto;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.8);
+      transition: transform 0.18s cubic-bezier(0.2, 1.3, 0.4, 1), border-color 0.2s, z-index 0s;
     }
-    .hand-card.playable { border-color: var(--ok); }
-    .card-art-bg {
-      position: absolute; inset: 0; width: 100%; height: 100%;
-      object-fit: cover; z-index: 0; pointer-events: none;
+    .hand-card.playable {
+      border-color: var(--cyan);
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.55), 0 10px 24px rgba(0,0,0,0.8);
     }
-    .card-overlay-top {
-      position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 3px;
-      padding: 4px 5px; font-size: 10px; font-weight: 800;
-      background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 100%);
+    .hand-card:hover, .hand-card:active {
+      transform: translateY(-24px) scale(1.12) rotate(0deg) !important;
+      z-index: 40;
     }
-    .card-overlay-bot {
-      position: relative; z-index: 1; padding: 4px 5px;
-      background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.45) 100%);
+    .hand-bot-plate {
+      position: relative; z-index: 2; padding: 4px 5px;
+      background: linear-gradient(0deg, rgba(0,0,0,0.95) 20%, rgba(0,0,0,0.5) 100%);
       display: flex; flex-direction: column; gap: 2px;
     }
-    .c-cost { background: rgba(245,158,11,0.22); border: 1px solid rgba(245,158,11,0.5); padding: 0 4px; border-radius: 4px; color: var(--accent); }
-    .c-text { font-size: 8.5px; color: #e5e7eb; line-height: 1.15; max-height: 28px; overflow: hidden; }
-    .c-pt { align-self: flex-end; background: rgba(0,0,0,0.85); border: 1px solid #475569; padding: 1px 5px; border-radius: 4px; font-size: 10px; font-weight: 800; }
+    .cost-pip {
+      background: rgba(15, 23, 42, 0.9); border: 1px solid var(--gold);
+      color: var(--gold); border-radius: 999px; padding: 0 5px; font-size: 9.5px;
+    }
 
-    /* MODALS / SHEETS */
+    /* ARENA PRIMARY ACTION BUTTON (Bottom-Right) */
+    .arena-cta {
+      position: absolute; right: 16px; bottom: 22px; z-index: 30;
+      min-width: 136px; height: 54px; padding: 0 20px; border-radius: 16px;
+      background: linear-gradient(135deg, #f59e0b, #d97706); color: #090d16;
+      font-size: 15px; font-weight: 900; letter-spacing: 0.4px;
+      box-shadow: 0 0 24px rgba(245, 158, 11, 0.55), 0 8px 20px rgba(0,0,0,0.7);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .arena-cta.combat {
+      background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff;
+      box-shadow: 0 0 26px rgba(239, 68, 68, 0.7), 0 8px 20px rgba(0,0,0,0.7);
+    }
+    .arena-cta span { font-size: 10px; font-weight: 700; opacity: 0.85; text-transform: uppercase; }
+
+    /* TOP-RIGHT MINIMAL GEAR & LOG TOAST */
+    .top-controls {
+      position: absolute; top: 10px; right: 12px; z-index: 30; display: flex; gap: 8px;
+    }
+    .hud-icon-btn {
+      background: rgba(15, 23, 42, 0.85); border: 1px solid var(--arena-rim);
+      color: var(--text); padding: 7px 12px; border-radius: 10px; font-size: 12px;
+    }
+    .arena-toast {
+      position: absolute; left: 14px; bottom: 26px; z-index: 28; max-width: 220px;
+      background: rgba(15, 23, 42, 0.88); border: 1px solid var(--arena-rim);
+      border-radius: 12px; padding: 8px 11px; font-size: 11px; color: #cbd5e1;
+      cursor: pointer;
+    }
+
+    /* FLOATING DAMAGE & VFX LAYER */
+    #vfx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 60; overflow: hidden; }
+    .dmg-float {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      font-size: 34px; font-weight: 900; color: #ef4444;
+      text-shadow: 0 0 18px rgba(239,68,68,0.95), 0 3px 0 #000;
+      animation: floatDamage 1.05s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .dmg-float.heal { color: #22c55e; text-shadow: 0 0 18px rgba(34,197,94,0.95), 0 3px 0 #000; }
+
+    /* MODAL */
     .modal-backdrop {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.68); backdrop-filter: blur(6px);
-      display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.72); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; z-index: 80; padding: 20px;
     }
     .sheet-box {
-      width: 100%; max-width: 520px; max-height: 82dvh; overflow-y: auto;
-      background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 20px;
+      width: 100%; max-width: 480px; max-height: 82dvh; overflow-y: auto;
+      background: #111827; border: 1px solid var(--arena-rim); border-radius: 18px; padding: 20px;
+    }
+
+    @keyframes cardSlam {
+      0% { transform: scale(1.45) translateY(-20px); opacity: 0.3; }
+      70% { transform: scale(0.95); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+    @keyframes floatDamage {
+      0% { opacity: 1; transform: translate(-50%, 0) scale(0.7); }
+      30% { transform: translate(-50%, -18px) scale(1.2); }
+      100% { opacity: 0; transform: translate(-50%, -62px) scale(1); }
+    }
+    @keyframes boardShake {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(-6px, 4px); }
+      50% { transform: translate(6px, -4px); }
+      75% { transform: translate(-4px, -2px); }
     }
   </style>
 </head>
@@ -193,7 +329,7 @@
       <div class="auth-col">
         <div>
           <div class="brand">✦ <span>AetherTable</span> MTG</div>
-          <p style="font-size:12px; color:var(--muted); margin:4px 0 0;">Swift Playgrounds Engine Port • iPad PWA</p>
+          <p style="font-size:12px; color:var(--muted); margin:4px 0 0;">Arena Battlefield Edition • iPad PWA</p>
 
           <div id="auth-forms">
             <div class="tabs">
@@ -212,34 +348,34 @@
               <label>Password</label>
               <input type="password" id="auth-pass" placeholder="Min 6 characters" />
             </div>
-            <button class="btn-primary" id="auth-submit" onclick="handleAuth()">Sign In</button>
+            <button class="btn-gold" id="auth-submit" onclick="handleAuth()">Sign In</button>
             <div class="status-msg" id="auth-status"></div>
           </div>
 
           <div id="profile-box" class="hidden" style="margin-top:16px;">
-            <div style="background:#0c1117; border:1px solid var(--border); border-radius:12px; padding:12px;">
+            <div style="background:#070a0f; border:1px solid var(--arena-rim); border-radius:12px; padding:12px;">
               <div style="font-size:11px; color:var(--muted);">PLANESWALKER</div>
-              <div id="profile-name" style="font-size:18px; font-weight:800; color:var(--accent);"></div>
-              <div style="font-size:12px; color:#d1d5db; margin-top:4px;">
+              <div id="profile-name" style="font-size:18px; font-weight:900; color:var(--gold);"></div>
+              <div style="font-size:12px; color:#cbd5e1; margin-top:4px;">
                 🪙 <strong id="profile-gold">250</strong> Gold • 🏆 <strong id="profile-wins">0</strong> Wins
               </div>
             </div>
-            <button class="btn-primary" style="margin-top:12px;" onclick="startRivalMatch('red')">⚔️ Quick Play vs AI Rival</button>
-            <button class="btn-secondary" style="width:100%; margin-top:8px;" onclick="signOutUser()">Sign Out</button>
+            <button class="btn-gold" style="margin-top:12px;" onclick="startRivalMatch('red')">⚔️ Enter Arena vs AI Rival</button>
+            <button class="btn-ghost" style="width:100%; margin-top:8px;" onclick="signOutUser()">Sign Out</button>
           </div>
         </div>
-        <div style="font-size:11px; color:var(--muted);">Safari Share → Add to Home Screen for full-screen iPad play.</div>
+        <div style="font-size:11px; color:var(--muted);">Tip: Tap <strong>Add to Home Screen</strong> in Safari for edge-to-edge play.</div>
       </div>
 
       <div class="lobby-col">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
           <div>
             <h3 style="margin:0; font-size:17px;">Live Multiplayer Wall</h3>
-            <span style="font-size:12px; color:var(--muted);" id="lobby-sub">Sign in to host or join a 2-player table</span>
+            <span style="font-size:12px; color:var(--muted);" id="lobby-sub">Sign in to host or join a 2-player Arena match</span>
           </div>
           <div style="display:flex; gap:6px;">
-            <input type="text" id="new-room-code" placeholder="ROOM CODE" maxlength="10" style="width:118px; background:#0c1117; border:1px solid var(--border); color:var(--text); padding:8px 10px; border-radius:10px; text-transform:uppercase;" />
-            <button class="btn-primary" style="width:auto;" onclick="createLiveRoom()">+ Host Table</button>
+            <input type="text" id="new-room-code" placeholder="ROOM CODE" maxlength="10" style="width:118px; background:#070a0f; border:1px solid var(--arena-rim); color:var(--text); padding:8px 10px; border-radius:10px; text-transform:uppercase;" />
+            <button class="btn-gold" style="width:auto;" onclick="createLiveRoom()">+ Host Table</button>
           </div>
         </div>
         <div class="room-list" id="room-list"></div>
@@ -247,66 +383,83 @@
     </div>
   </div>
 
-  <!-- GAMEBOARD -->
-  <div id="game-board" class="hidden">
-    <div class="player-bar">
-      <div class="bar-left">
-        <div class="info-pill">
-          <strong id="opp-name">Rival</strong>
-          <span>📚 <span id="opp-lib">0</span></span>
-          <span>🪦 <span id="opp-gy">0</span></span>
-          <div class="opp-hand-backs" id="opp-hand-backs"></div>
-        </div>
-      </div>
-      <div class="life-die opp" id="opp-life-die" onclick="tapPlayer('opp')">
-        <span id="opp-life">20</span>
-      </div>
-      <div class="bar-right">
-        <button class="info-pill" onclick="openModal('formats')">🏆 Formats</button>
-        <button class="info-pill" onclick="openModal('shop')">🛒 Shop</button>
-        <button class="info-pill" onclick="openModal('daily')">🪙 <span id="hud-gold">250</span></button>
-        <button class="info-pill" onclick="openModal('menu')">••• Menu</button>
+  <!-- ARENA BATTLEFIELD -->
+  <div id="arena-board" class="hidden">
+    <!-- Top Controls -->
+    <div class="top-controls">
+      <button class="hud-icon-btn" onclick="openModal('log')">📜 Log</button>
+      <button class="hud-icon-btn" onclick="openModal('menu')">⚙️ Menu</button>
+    </div>
+
+    <!-- Opponent Avatar & Face-Down Hand -->
+    <div class="opp-fan" id="opp-hand-backs"></div>
+    <div class="avatar-pod top" onclick="tapPlayer('opp')">
+      <div class="life-orb opp" id="opp-life">20</div>
+      <div class="avatar-meta">
+        <span class="avatar-name" id="opp-name">Rival Chandra</span>
+        <span class="avatar-sub">Hand: <strong id="opp-hand-count">7</strong></span>
       </div>
     </div>
 
-    <div class="table-stage mode-3d" id="table-stage">
-      <div class="bf-row" id="opp-bf"></div>
-
-      <div class="center-bar">
-        <div class="turn-box">
-          <div class="sub" id="turn-owner">Turn 1, yours</div>
-          <div class="step" id="step-label">Main Phase 1</div>
-        </div>
-        <div class="stack-box" id="stack-box">
-          <span style="color:var(--muted);">Stack is empty</span>
-        </div>
-        <div class="log-preview" id="log-preview" onclick="openModal('log')"></div>
-        <button class="action-btn" id="center-action-btn" onclick="handleCenterAction()">Pass</button>
-      </div>
-
-      <div class="bf-row" id="human-bf"></div>
+    <!-- Corner Zone Piles -->
+    <div class="zone-corner opp-left">
+      <div class="deck-box"><span>DECK</span><span id="opp-lib">13</span></div>
+      <div class="gy-box">🪦 <span id="opp-gy" style="margin-left:4px;">0</span></div>
     </div>
 
-    <div class="player-bar">
-      <div class="bar-left">
-        <div class="info-pill">
-          <strong id="human-name">You</strong>
-          <span>📚 <span id="human-lib">0</span></span>
-          <span>✋ <span id="human-hand-count">0</span></span>
-          <span>🪦 <span id="human-gy">0</span></span>
-        </div>
+    <div class="zone-corner human-right">
+      <div class="gy-box">🪦 <span id="human-gy" style="margin-left:4px;">0</span></div>
+      <div class="deck-box"><span>DECK</span><span id="human-lib">13</span></div>
+    </div>
+
+    <!-- 3D Engraved Playmat -->
+    <div class="playmat-plane">
+      <!-- Opponent Half (Lands Back, Creatures Front) -->
+      <div class="side-half">
+        <div class="row-strip backrow" id="opp-lands"></div>
+        <div class="row-strip" id="opp-creatures"></div>
       </div>
-      <div class="life-die human" id="human-life-die" onclick="tapPlayer('human')">
-        <span id="human-life">20</span>
+
+      <!-- Center Combat Line & Phase Strip -->
+      <div class="combat-divider">
+        <span style="font-size:11px; font-weight:800; color:var(--cyan);" id="turn-badge">TURN 1</span>
+        <div class="phase-track" id="phase-track"></div>
+        <span style="font-size:11px; font-weight:800; color:var(--gold);" id="mana-badge">⚡ 0 MANA</span>
       </div>
-      <div class="bar-right">
-        <span class="info-pill">⚡ Mana: <strong id="avail-mana">0</strong></span>
+
+      <!-- Player Half (Creatures Front, Lands Back) -->
+      <div class="side-half">
+        <div class="row-strip" id="human-creatures"></div>
+        <div class="row-strip backrow" id="human-lands"></div>
       </div>
     </div>
 
-    <div class="hand-fan" id="hand-fan"></div>
+    <!-- Player Avatar -->
+    <div class="avatar-pod bot" onclick="tapPlayer('human')">
+      <div class="life-orb human" id="human-life">20</div>
+      <div class="avatar-meta">
+        <span class="avatar-name" id="human-name">Nerabz</span>
+        <span class="avatar-sub">🪙 <span id="hud-gold">250</span> • 🏆 <span id="hud-wins">0</span></span>
+      </div>
+    </div>
+
+    <!-- Bottom-Left Live Action Toast -->
+    <div class="arena-toast" id="arena-toast" onclick="openModal('log')">Ready for battle.</div>
+
+    <!-- Curved Hand Fan -->
+    <div class="hand-dock" id="hand-fan"></div>
+
+    <!-- Arena Primary Action Button -->
+    <button class="arena-cta" id="arena-cta" onclick="handleCenterAction()">
+      <strong id="cta-main">Next Phase</strong>
+      <span id="cta-sub">Main Phase 1</span>
+    </button>
+
+    <!-- VFX Overlay -->
+    <div id="vfx-layer"></div>
   </div>
 
+  <!-- MODAL -->
   <div id="modal-backdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeModal()">
     <div class="sheet-box" id="modal-content"></div>
   </div>
@@ -316,20 +469,25 @@
     const SUPABASE_ANON_KEY = "sb_publishable_QU5rvS7F-VfmocfgP1SqKw_gymqv9bQ";
     const sb = SUPABASE_URL.startsWith("http") ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-    const STEPS = ["Untap", "Upkeep", "Draw", "Main Phase 1", "Declare Attackers", "Declare Blockers", "Combat Damage", "Main Phase 2", "End Step"];
+    const PHASES = [
+      { key: "main1", label: "Main 1", combat: false },
+      { key: "attack", label: "Combat", combat: true },
+      { key: "main2", label: "Main 2", combat: false },
+      { key: "end", label: "End Turn", combat: false }
+    ];
 
     const DECKS = {
       red: [
         { name: "Mountain", type: "Land", cost: 0, text: "Tap: Add {R}.", isLand: true },
         { name: "Raging Goblin", type: "Creature — Goblin", cost: 1, power: 1, toughness: 1, haste: true, text: "Haste" },
-        { name: "Lightning Bolt", type: "Instant", cost: 1, damage: 3, text: "Deal 3 damage to any target." },
+        { name: "Lightning Bolt", type: "Instant", cost: 1, damage: 3, text: "Deal 3 damage to opponent." },
         { name: "Fireball", type: "Sorcery", cost: 3, damage: 4, text: "Deal 4 damage to opponent." },
         { name: "Shivan Dragon", type: "Creature — Dragon", cost: 5, power: 5, toughness: 5, text: "Flying" }
       ],
       white: [
         { name: "Plains", type: "Land", cost: 0, text: "Tap: Add {W}.", isLand: true },
         { name: "Savannah Lions", type: "Creature — Cat", cost: 1, power: 2, toughness: 1, text: "" },
-        { name: "Pacifism", type: "Instant", cost: 2, heal: 4, text: "Gain 4 life." },
+        { name: "Revitalize", type: "Instant", cost: 2, heal: 4, text: "Gain 4 life." },
         { name: "Serra Angel", type: "Creature — Angel", cost: 4, power: 4, toughness: 4, vigilance: true, text: "Flying, vigilance" }
       ],
       green: [
@@ -340,7 +498,6 @@
       ]
     };
 
-    // SCRYFALL ART CACHE
     const artCache = JSON.parse(localStorage.getItem("at_scryfall_art") || "{}");
     const artInFlight = new Set();
 
@@ -359,15 +516,11 @@
             if (game) renderBoard();
           }
         }
-      } catch (_) {
-        // Ignore network errors silently
-      } finally {
-        artInFlight.delete(cardName);
-      }
+      } catch (_) {} finally { artInFlight.delete(cardName); }
     }
 
     let authMode = "login";
-    let userProfile = { id: null, name: "Planeswalker", email: "", gold: 250, wins: 0, use3D: true };
+    let userProfile = { id: null, name: "Planeswalker", email: "", gold: 250, wins: 0 };
     let liveRoomCode = null;
     let isRoomHost = true;
     let roomChannel = null;
@@ -377,9 +530,9 @@
       const base = DECKS[colorKey] || DECKS.red;
       const cards = [];
       for (let i = 0; i < 20; i++) {
-        const template = i < 8 ? base[0] : base[(i % (base.length - 1)) + 1];
-        ensureCardArt(template.name);
-        cards.push({ ...template, id: "c-" + i + "-" + Math.random().toString(36).slice(2, 6) });
+        const t = i < 8 ? base[0] : base[(i % (base.length - 1)) + 1];
+        ensureCardArt(t.name);
+        cards.push({ ...t, id: "c-" + i + "-" + Math.random().toString(36).slice(2, 6) });
       }
       return cards.sort(() => Math.random() - 0.5);
     }
@@ -389,12 +542,27 @@
       const oDeck = buildDeck("white");
       return {
         turn: 1,
-        stepIndex: 3,
-        use3D: userProfile.use3D,
+        phaseIdx: 0,
         log: [`Match started: ${humanName} vs ${oppName}.`],
         human: { name: humanName, life: 20, hand: hDeck.slice(0, 7), library: hDeck.slice(7), bf: [], gy: [], landPlayed: false },
         opp: { name: oppName, life: 20, hand: oDeck.slice(0, 7), library: oDeck.slice(7), bf: [], gy: [], landPlayed: false }
       };
+    }
+
+    function triggerVFX(amount, isHeal, isTopTarget) {
+      const layer = document.getElementById("vfx-layer");
+      const board = document.getElementById("arena-board");
+      const el = document.createElement("div");
+      el.className = "dmg-float" + (isHeal ? " heal" : "");
+      el.style.top = isTopTarget ? "58px" : "calc(100dvh - 175px)";
+      el.textContent = (isHeal ? "+" : "-") + amount;
+      layer.appendChild(el);
+      if (!isHeal) {
+        board.classList.remove("shake");
+        void board.offsetWidth;
+        board.classList.add("shake");
+      }
+      setTimeout(() => el.remove(), 1100);
     }
 
     function switchAuthMode(m) {
@@ -412,17 +580,15 @@
     }
 
     async function handleAuth() {
-      if (!sb) return setStatus("Developer setup needed: paste SUPABASE_URL & SUPABASE_ANON_KEY.", true);
+      if (!sb) return setStatus("Missing Supabase keys.", true);
       const email = document.getElementById("auth-email").value.trim();
       const password = document.getElementById("auth-pass").value;
       const name = document.getElementById("auth-name").value.trim() || email.split("@")[0];
       if (!email || password.length < 6) return setStatus("Enter a valid email and 6+ char password.", true);
-
       setStatus("Connecting...");
       const res = authMode === "signup"
         ? await sb.auth.signUp({ email, password, options: { data: { display_name: name } } })
         : await sb.auth.signInWithPassword({ email, password });
-
       if (res.error) return setStatus(res.error.message, true);
       onSignedIn(res.data.user);
     }
@@ -431,19 +597,16 @@
       if (!u) return;
       const saved = JSON.parse(localStorage.getItem("at_prof_" + u.id) || "{}");
       userProfile = {
-        id: u.id,
-        email: u.email,
+        id: u.id, email: u.email,
         name: u.user_metadata?.display_name || u.email.split("@")[0],
-        gold: saved.gold ?? 250,
-        wins: saved.wins ?? 0,
-        use3D: saved.use3D ?? true
+        gold: saved.gold ?? 250, wins: saved.wins ?? 0
       };
       document.getElementById("auth-forms").classList.add("hidden");
       document.getElementById("profile-box").classList.remove("hidden");
       document.getElementById("profile-name").textContent = userProfile.name;
       document.getElementById("profile-gold").textContent = userProfile.gold;
       document.getElementById("profile-wins").textContent = userProfile.wins;
-      document.getElementById("lobby-sub").textContent = "Host a 2-player table or tap Quick Play vs AI Rival";
+      document.getElementById("lobby-sub").textContent = "Host a 2-player Arena table or battle an AI Rival";
       loadLobby();
     }
 
@@ -461,16 +624,15 @@
       if (!sb || !userProfile.id) return;
       const refresh = async () => {
         const { data } = await sb.from("rooms").select("*").order("updated_at", { ascending: false }).limit(25);
-        const list = document.getElementById("room-list");
-        list.innerHTML = (data || []).map(r => `
+        document.getElementById("room-list").innerHTML = (data || []).map(r => `
           <div class="room-card">
             <div>
-              <strong style="color:var(--accent);">${r.code}</strong>
+              <strong style="color:var(--gold);">${r.code}</strong>
               <div style="font-size:12px; color:var(--muted);">Host: ${r.host_name} • Guest: ${r.guest_name || "Open"}</div>
             </div>
-            <button class="btn-secondary" onclick="joinLiveRoom('${r.code}')">Join</button>
+            <button class="btn-ghost" onclick="joinLiveRoom('${r.code}')">Join</button>
           </div>
-        `).join("") || `<div style="color:var(--muted); text-align:center; padding:24px;">No live tables yet. Tap <strong>+ Host Table</strong> or <strong>Quick Play vs AI Rival</strong>.</div>`;
+        `).join("") || `<div style="color:var(--muted); text-align:center; padding:24px;">No active tables. Tap <strong>+ Host Table</strong> or <strong>Enter Arena vs AI Rival</strong>.</div>`;
       };
       refresh();
       sb.channel("lobby-sync").on("postgres_changes", { event: "*", schema: "public", table: "rooms" }, refresh).subscribe();
@@ -487,7 +649,7 @@
       const code = (document.getElementById("new-room-code").value.trim() || Math.random().toString(36).slice(2, 7)).toUpperCase();
       liveRoomCode = code;
       isRoomHost = true;
-      game = createGameState(userProfile.name, "Waiting for Seat 2...", "red");
+      game = createGameState(userProfile.name, "Waiting for Challenger...", "red");
       await sb.from("rooms").upsert({
         code, host_id: userProfile.id, host_name: userProfile.name, guest_id: null, guest_name: null,
         state: game, updated_at: new Date().toISOString()
@@ -514,10 +676,7 @@
       if (roomChannel) sb.removeChannel(roomChannel);
       roomChannel = sb.channel("match-" + code)
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: "rooms", filter: `code=eq.${code}` }, p => {
-          if (p.new?.state?.human) {
-            game = p.new.state;
-            renderBoard();
-          }
+          if (p.new?.state?.human) { game = p.new.state; renderBoard(); }
         }).subscribe();
     }
 
@@ -528,7 +687,7 @@
 
     function showBoard() {
       document.getElementById("home-wall").classList.add("hidden");
-      document.getElementById("game-board").classList.remove("hidden");
+      document.getElementById("arena-board").classList.remove("hidden");
       renderBoard();
     }
 
@@ -539,6 +698,7 @@
     function tapHandCard(cardId) {
       if (!game) return;
       const me = isRoomHost ? game.human : game.opp;
+      const foe = isRoomHost ? game.opp : game.human;
       const idx = me.hand.findIndex(c => c.id === cardId);
       if (idx === -1) return;
       const card = me.hand[idx];
@@ -546,38 +706,40 @@
       if (card.isLand) {
         if (me.landPlayed) return addLog("Already played a land this turn.");
         me.hand.splice(idx, 1);
-        me.bf.push({ ...card, tapped: false, attacking: false });
+        me.bf.push({ ...card, tapped: false, attacking: false, sick: false });
         me.landPlayed = true;
-        addLog(`${me.name} played ${card.name}.`);
+        addLog(`Played ${card.name}.`);
       } else {
-        if (availableMana(me) < card.cost) return addLog(`Need ${card.cost} untapped lands for ${card.name}.`);
+        if (availableMana(me) < card.cost) return addLog(`Need ${card.cost} untapped mana for ${card.name}.`);
         let toTap = card.cost;
         me.bf.forEach(c => { if (c.isLand && !c.tapped && toTap > 0) { c.tapped = true; toTap--; } });
         me.hand.splice(idx, 1);
         if (card.type.startsWith("Creature")) {
-          me.bf.push({ ...card, tapped: false, attacking: false });
-          addLog(`${me.name} summoned ${card.name} (${card.power}/${card.toughness}).`);
+          me.bf.push({ ...card, tapped: false, attacking: false, sick: !card.haste });
+          addLog(`Summoned ${card.name} (${card.power}/${card.toughness}).`);
         } else {
           if (card.damage) {
-            const foe = isRoomHost ? game.opp : game.human;
             foe.life -= card.damage;
-            addLog(`${me.name} cast ${card.name} for ${card.damage} damage!`);
+            triggerVFX(card.damage, false, true);
+            addLog(`${card.name} hit ${foe.name} for ${card.damage}!`);
           } else if (card.heal) {
             me.life += card.heal;
-            addLog(`${me.name} cast ${card.name} and gained ${card.heal} life.`);
+            triggerVFX(card.heal, true, false);
+            addLog(`${card.name} restored ${card.heal} life.`);
           }
           me.gy.push(card);
         }
       }
+      checkWinner();
       renderBoard();
       pushRoomState();
     }
 
-    function tapPermanent(cardId) {
+    function tapCreature(cardId) {
       const me = isRoomHost ? game.human : game.opp;
       const card = me.bf.find(c => c.id === cardId);
       if (!card) return;
-      if (STEPS[game.stepIndex] === "Declare Attackers" && card.type.startsWith("Creature") && !card.tapped) {
+      if (PHASES[game.phaseIdx].key === "attack" && !card.tapped && !card.sick) {
         card.attacking = !card.attacking;
       } else {
         card.tapped = !card.tapped;
@@ -586,12 +748,21 @@
       pushRoomState();
     }
 
+    function tapLandGroup(landName) {
+      const me = isRoomHost ? game.human : game.opp;
+      const untapped = me.bf.find(c => c.isLand && c.name === landName && !c.tapped);
+      if (untapped) untapped.tapped = true;
+      else me.bf.filter(c => c.isLand && c.name === landName).forEach(c => c.tapped = false);
+      renderBoard();
+      pushRoomState();
+    }
+
     function handleCenterAction() {
       const me = isRoomHost ? game.human : game.opp;
       const foe = isRoomHost ? game.opp : game.human;
-      const step = STEPS[game.stepIndex];
+      const phase = PHASES[game.phaseIdx];
 
-      if (step === "Declare Attackers") {
+      if (phase.key === "attack") {
         let totalDmg = 0;
         me.bf.forEach(c => {
           if (c.attacking) {
@@ -602,23 +773,23 @@
         });
         if (totalDmg > 0) {
           foe.life -= totalDmg;
-          addLog(`${me.name}'s attackers dealt ${totalDmg} combat damage!`);
+          triggerVFX(totalDmg, false, true);
+          addLog(`Combat strike dealt ${totalDmg} damage!`);
         }
       }
 
-      game.stepIndex++;
-      if (game.stepIndex >= STEPS.length) {
-        game.stepIndex = 0;
+      game.phaseIdx++;
+      if (game.phaseIdx >= PHASES.length) {
+        game.phaseIdx = 0;
         game.turn++;
         if (!liveRoomCode) {
           runAITurn();
-          game.stepIndex = 3;
-          me.bf.forEach(c => c.tapped = false);
+          me.bf.forEach(c => { c.tapped = false; c.sick = false; });
           me.landPlayed = false;
           if (me.library.length) me.hand.push(me.library.shift());
-          addLog(`Turn ${game.turn}: Untapped & drew a card.`);
+          addLog(`Turn ${game.turn}: Untapped all & drew a card.`);
         } else {
-          foe.bf.forEach(c => c.tapped = false);
+          foe.bf.forEach(c => { c.tapped = false; c.sick = false; });
           foe.landPlayed = false;
           if (foe.library.length) foe.hand.push(foe.library.shift());
         }
@@ -630,7 +801,7 @@
 
     function runAITurn() {
       const ai = game.opp;
-      ai.bf.forEach(c => c.tapped = false);
+      ai.bf.forEach(c => { c.tapped = false; c.sick = false; });
       if (ai.library.length) ai.hand.push(ai.library.shift());
       const landIdx = ai.hand.findIndex(c => c.isLand);
       if (landIdx !== -1) ai.bf.push({ ...ai.hand.splice(landIdx, 1)[0], tapped: false });
@@ -638,8 +809,18 @@
       if (spellIdx !== -1) {
         const sp = ai.hand.splice(spellIdx, 1)[0];
         if (sp.type.startsWith("Creature")) ai.bf.push({ ...sp, tapped: false });
-        else if (sp.damage) game.human.life -= sp.damage;
-        addLog(`${ai.name} played ${sp.name}.`);
+        else if (sp.damage) { game.human.life -= sp.damage; triggerVFX(sp.damage, false, false); }
+        addLog(`${ai.name} cast ${sp.name}.`);
+      }
+      const aiAttackers = ai.bf.filter(c => !c.isLand && !c.tapped);
+      if (aiAttackers.length) {
+        const dmg = aiAttackers.reduce((s, c) => s + (c.power || 0), 0);
+        aiAttackers.forEach(c => { if (!c.vigilance) c.tapped = true; });
+        if (dmg > 0) {
+          game.human.life -= dmg;
+          triggerVFX(dmg, false, false);
+          addLog(`${ai.name} attacked for ${dmg} damage!`);
+        }
       }
     }
 
@@ -647,13 +828,24 @@
       if (game.human.life <= 0 || game.opp.life <= 0) {
         const won = (isRoomHost && game.opp.life <= 0) || (!isRoomHost && game.human.life <= 0);
         if (won) { userProfile.wins++; userProfile.gold += 50; saveProfile(); }
-        addLog(won ? "Victory! +50 Gold awarded." : "Defeat!");
+        addLog(won ? "🏆 Victory! +50 Gold earned." : "💀 Defeat!");
       }
     }
 
     function addLog(line) {
       game.log.push(line);
       if (game.log.length > 40) game.log.shift();
+      document.getElementById("arena-toast").textContent = line;
+    }
+
+    function groupLands(cards) {
+      const map = {};
+      cards.filter(c => c.isLand).forEach(c => {
+        const key = c.name + (c.tapped ? "_tap" : "_untap");
+        if (!map[key]) map[key] = { ...c, count: 0 };
+        map[key].count++;
+      });
+      return Object.values(map);
     }
 
     function renderBoard() {
@@ -661,68 +853,98 @@
       const me = isRoomHost ? game.human : game.opp;
       const foe = isRoomHost ? game.opp : game.human;
 
-      document.getElementById("table-stage").classList.toggle("mode-3d", Boolean(game.use3D));
       document.getElementById("human-name").textContent = me.name;
       document.getElementById("human-life").textContent = me.life;
       document.getElementById("human-lib").textContent = me.library.length;
-      document.getElementById("human-hand-count").textContent = me.hand.length;
       document.getElementById("human-gy").textContent = me.gy.length;
-      document.getElementById("avail-mana").textContent = availableMana(me);
       document.getElementById("hud-gold").textContent = userProfile.gold;
+      document.getElementById("hud-wins").textContent = userProfile.wins;
 
       document.getElementById("opp-name").textContent = foe.name;
       document.getElementById("opp-life").textContent = foe.life;
       document.getElementById("opp-lib").textContent = foe.library.length;
       document.getElementById("opp-gy").textContent = foe.gy.length;
-      document.getElementById("opp-hand-backs").innerHTML = foe.hand.map(() => `<div class="card-back-mini"></div>`).join("");
-
-      const step = STEPS[game.stepIndex];
-      document.getElementById("turn-owner").textContent = `Turn ${game.turn}, ${me.name}`;
-      document.getElementById("step-label").textContent = step;
-
-      const btn = document.getElementById("center-action-btn");
-      if (step === "Declare Attackers") {
-        const count = me.bf.filter(c => c.attacking).length;
-        btn.textContent = count ? `Attack with ${count}` : "Skip Attack";
-        btn.className = "action-btn attack";
-      } else {
-        btn.textContent = "Pass";
-        btn.className = "action-btn";
-      }
-
-      document.getElementById("log-preview").innerHTML = game.log.slice(-3).map(l => `<div>${l}</div>`).join("");
-      document.getElementById("opp-bf").innerHTML = foe.bf.map(c => renderPermHTML(c, false)).join("");
-      document.getElementById("human-bf").innerHTML = me.bf.map(c => renderPermHTML(c, true)).join("");
+      document.getElementById("opp-hand-count").textContent = foe.hand.length;
+      document.getElementById("opp-hand-backs").innerHTML = foe.hand.map(() => `<div class="opp-card-back"></div>`).join("");
 
       const mana = availableMana(me);
-      document.getElementById("hand-fan").innerHTML = me.hand.map(c => {
+      document.getElementById("turn-badge").textContent = `TURN ${game.turn}`;
+      document.getElementById("mana-badge").textContent = `⚡ ${mana} MANA`;
+
+      const phase = PHASES[game.phaseIdx];
+      document.getElementById("phase-track").innerHTML = PHASES.map((p, idx) =>
+        `<div class="phase-pip ${p.combat ? 'combat' : ''} ${idx === game.phaseIdx ? 'active' : ''}">${p.label}</div>`
+      ).join("");
+
+      const cta = document.getElementById("arena-cta");
+      const ctaMain = document.getElementById("cta-main");
+      const ctaSub = document.getElementById("cta-sub");
+      if (phase.key === "attack") {
+        const atkCount = me.bf.filter(c => c.attacking).length;
+        cta.className = "arena-cta combat";
+        ctaMain.textContent = atkCount ? `Attack (${atkCount})` : "No Attackers";
+        ctaSub.textContent = atkCount ? "Deal Combat Damage" : "Skip to Main 2";
+      } else {
+        cta.className = "arena-cta";
+        ctaMain.textContent = phase.key === "end" ? "End Turn" : "Next Phase";
+        ctaSub.textContent = phase.label;
+      }
+
+      // Render Two-Row Battlefields
+      document.getElementById("opp-lands").innerHTML = groupLands(foe.bf).map(l => renderLandStackHTML(l, false)).join("");
+      document.getElementById("opp-creatures").innerHTML = foe.bf.filter(c => !c.isLand).map(c => renderCreatureHTML(c, false)).join("");
+      document.getElementById("human-creatures").innerHTML = me.bf.filter(c => !c.isLand).map(c => renderCreatureHTML(c, true)).join("");
+      document.getElementById("human-lands").innerHTML = groupLands(me.bf).map(l => renderLandStackHTML(l, true)).join("");
+
+      // Curved Hand Fan
+      const total = me.hand.length;
+      document.getElementById("hand-fan").innerHTML = me.hand.map((c, i) => {
         ensureCardArt(c.name);
         const artUrl = artCache[c.name];
         const canPlay = c.isLand ? !me.landPlayed : c.cost <= mana;
+        const offset = i - (total - 1) / 2;
+        const rot = offset * 3.2;
+        const lift = Math.abs(offset) * 3.5;
         return `
-          <div class="hand-card ${canPlay ? 'playable' : ''}" onclick="tapHandCard('${c.id}')">
-            ${artUrl ? `<img class="card-art-bg" src="${artUrl}" alt="${c.name}" />` : ''}
-            <div class="card-overlay-top"><span>${c.name}</span><span class="c-cost">${c.cost || ''}</span></div>
-            <div class="card-overlay-bot">
-              <div class="c-text">${c.text || c.type}</div>
-              ${c.power != null ? `<div class="c-pt">${c.power}/${c.toughness}</div>` : ''}
+          <div class="hand-card ${canPlay ? 'playable' : ''}"
+               style="transform: translateY(${lift}px) rotate(${rot}deg);"
+               onclick="tapHandCard('${c.id}')">
+            ${artUrl ? `<img class="art-fill" src="${artUrl}" alt="${c.name}" />` : ''}
+            <div class="card-plate-top" style="display:flex; justify-content:space-between;">
+              <span>${c.name}</span>
+              ${c.cost ? `<span class="cost-pip">${c.cost}</span>` : ''}
+            </div>
+            <div class="hand-bot-plate">
+              <div style="font-size:8.5px; color:#e2e8f0; line-height:1.15;">${c.text || c.type}</div>
+              ${c.power != null ? `<div class="pt-shield" style="position:static; align-self:flex-end;">${c.power}/${c.toughness}</div>` : ''}
             </div>
           </div>
         `;
       }).join("");
     }
 
-    function renderPermHTML(c, interactive) {
+    function renderCreatureHTML(c, interactive) {
       ensureCardArt(c.name);
       const artUrl = artCache[c.name];
       return `
-        <div class="perm-card ${c.tapped ? 'tapped' : ''} ${c.attacking ? 'attacking' : ''}" ${interactive ? `onclick="tapPermanent('${c.id}')"` : ''}>
-          ${artUrl ? `<img class="card-art-bg" src="${artUrl}" alt="${c.name}" />` : ''}
-          <div class="card-overlay-top"><span>${c.name}</span></div>
-          <div class="card-overlay-bot">
-            <div class="c-text">${c.type}</div>
-            ${c.power != null ? `<div class="c-pt">${c.power}/${c.toughness}</div>` : ''}
-          </div>
+        <div class="arena-card ${c.tapped ? 'tapped' : ''} ${c.attacking ? 'attacking' : ''}"
+             ${interactive ? `onclick="tapCreature('${c.id}')"` : ''}>
+          ${artUrl ? `<img class="art-fill" src="${artUrl}" alt="${c.name}" />` : ''}
+          <div class="card-plate-top">${c.name}</div>
+          ${c.power != null ? `<div class="pt-shield">${c.power}/${c.toughness}</div>` : ''}
+        </div>
+      `;
+    }
+
+    function renderLandStackHTML(l, interactive) {
+      ensureCardArt(l.name);
+      const artUrl = artCache[l.name];
+      return `
+        <div class="arena-card land ${l.tapped ? 'tapped' : ''}"
+             ${interactive ? `onclick="tapLandGroup('${l.name}')"` : ''}>
+          ${artUrl ? `<img class="art-fill" src="${artUrl}" alt="${l.name}" />` : ''}
+          ${l.count > 1 ? `<div class="stack-count">×${l.count}</div>` : ''}
+          <div class="card-plate-top">${l.name}</div>
         </div>
       `;
     }
@@ -730,29 +952,27 @@
     function openModal(kind) {
       const box = document.getElementById("modal-content");
       if (kind === "log") {
-        box.innerHTML = `<h3>Game Log</h3>` + game.log.slice().reverse().map(l => `<p style="font-size:13px; border-bottom:1px solid var(--border); padding-bottom:6px;">${l}</p>`).join("");
-      } else if (kind === "menu") {
+        box.innerHTML = `<h3 style="margin-top:0;">Match Log</h3>` +
+          game.log.slice().reverse().map(l => `<p style="font-size:13px; border-bottom:1px solid var(--arena-rim); padding-bottom:6px;">${l}</p>`).join("") +
+          `<button class="btn-gold" onclick="closeModal()">Close</button>`;
+      } else {
         box.innerHTML = `
-          <h3>Table Menu</h3>
+          <h3 style="margin-top:0;">Arena Menu</h3>
+          <p style="font-size:13px; color:var(--muted);">🪙 ${userProfile.gold} Gold • 🏆 ${userProfile.wins} Wins</p>
           <div style="display:flex; flex-direction:column; gap:10px;">
-            <button class="btn-secondary" onclick="startRivalMatch('red'); closeModal();">New Red Deck Match</button>
-            <button class="btn-secondary" onclick="startRivalMatch('white'); closeModal();">New White Deck Match</button>
-            <button class="btn-secondary" onclick="startRivalMatch('green'); closeModal();">New Green Deck Match</button>
-            <button class="btn-secondary" onclick="game.use3D = !game.use3D; userProfile.use3D = game.use3D; saveProfile(); renderBoard(); closeModal();">Toggle 3D Table Perspective</button>
-            <button class="btn-primary" onclick="document.getElementById('game-board').classList.add('hidden'); document.getElementById('home-wall').classList.remove('hidden'); closeModal();">Return to Home Wall</button>
+            <button class="btn-ghost" onclick="userProfile.gold+=100; saveProfile(); renderBoard(); closeModal();">🪙 Claim +100 Daily Gold</button>
+            <button class="btn-ghost" onclick="startRivalMatch('red'); closeModal();">🔥 New Red Aggro Match</button>
+            <button class="btn-ghost" onclick="startRivalMatch('white'); closeModal();">☀️ New White Angels Match</button>
+            <button class="btn-ghost" onclick="startRivalMatch('green'); closeModal();">🌲 New Green Ramp Match</button>
+            <button class="btn-gold" onclick="document.getElementById('arena-board').classList.add('hidden'); document.getElementById('home-wall').classList.remove('hidden'); closeModal();">Leave Match to Wall</button>
           </div>
         `;
-      } else if (kind === "daily") {
-        userProfile.gold += 100; saveProfile(); renderBoard();
-        box.innerHTML = `<h3>Daily Reward Claimed!</h3><p>+100 Gold added. Total: <strong>${userProfile.gold} Gold</strong>.</p><button class="btn-primary" onclick="closeModal()">Done</button>`;
-      } else {
-        box.innerHTML = `<h3>${kind.toUpperCase()}</h3><p>Gold: <strong>${userProfile.gold}</strong> • Wins: <strong>${userProfile.wins}</strong></p><button class="btn-primary" onclick="closeModal()">Close</button>`;
       }
       document.getElementById("modal-backdrop").classList.remove("hidden");
     }
 
     function closeModal() { document.getElementById("modal-backdrop").classList.add("hidden"); }
-    function tapPlayer(who) { addLog(`Targeted ${who === "human" ? game.human.name : game.opp.name}.`); renderBoard(); }
+    function tapPlayer(who) { addLog(`Targeted ${who === "human" ? game.human.name : game.opp.name}.`); }
 
     (async () => {
       if (!sb) return;
