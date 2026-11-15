@@ -11,14 +11,11 @@
   <style>
     :root {
       --bg-void: #070a0f;
-      --arena-stone: #131923;
       --arena-rim: #2c384b;
       --gold: #f59e0b;
       --cyan: #38bdf8;
       --emerald: #10b981;
       --crimson: #ef4444;
-      --wood-dark: #1c130d;
-      --wood-light: #2e1f15;
       --text: #f8fafc;
       --muted: #94a3b8;
     }
@@ -38,11 +35,10 @@
     button:active { transform: scale(0.96); }
     .hidden { display: none !important; }
 
-    /* COMMON BUTTONS & PILLS */
     .btn-gold { background: linear-gradient(135deg, #fbbf24, #d97706); color: #0f172a; padding: 10px 15px; border-radius: 10px; font-size: 13px; }
     .btn-cyan { background: linear-gradient(135deg, #38bdf8, #0284c7); color: #041e2e; padding: 10px 15px; border-radius: 10px; font-size: 13px; }
     .btn-ghost { background: rgba(255,255,255,0.08); color: var(--text); border: 1px solid var(--arena-rim); padding: 8px 12px; border-radius: 10px; font-size: 13px; }
-    .pill { background: rgba(15,23,42,0.85); border: 1px solid var(--arena-rim); padding: 6px 12px; border-radius: 999px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+    .pill { background: rgba(11,15,23,0.88); border: 1px solid var(--arena-rim); padding: 6px 12px; border-radius: 999px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
 
     /* LOGIN WALL */
     #login-wall {
@@ -67,86 +63,224 @@
     }
     .status-msg { font-size: 12px; min-height: 18px; margin-top: 8px; }
 
-    /* TOP NAVIGATION BAR FOR DESK & STORE SCENES */
+    /* TOP HUD */
     .scene-topbar {
-      height: 56px; padding: 0 18px; background: rgba(11, 15, 23, 0.92);
+      height: 52px; padding: 0 16px; background: rgba(10, 14, 22, 0.92);
       border-bottom: 1px solid var(--arena-rim);
-      display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 20;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 30;
     }
-    .scene-nav { display: flex; align-items: center; gap: 8px; }
-    .nav-tab {
-      padding: 7px 14px; border-radius: 10px; font-size: 13px;
-      background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid transparent;
-    }
-    .nav-tab.active { background: rgba(245,158,11,0.16); color: var(--gold); border-color: rgba(245,158,11,0.45); }
 
-    /* SCENE 1: HOME DESK */
+    /* INTERACTIVE PROP / HOTSPOT STYLING */
+    .prop-item {
+      position: relative; cursor: pointer;
+      transition: transform 0.18s cubic-bezier(0.2, 1.35, 0.4, 1), filter 0.2s;
+    }
+    .prop-item:hover, .prop-item:active {
+      transform: translateY(-6px) scale(1.03);
+      filter: drop-shadow(0 12px 24px rgba(56, 189, 248, 0.35));
+    }
+    .prop-tag {
+      position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+      background: rgba(11, 15, 23, 0.94); border: 1px solid var(--gold);
+      color: var(--text); padding: 3px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 800; white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.7); z-index: 10;
+    }
+    .notif-dot {
+      position: absolute; top: -6px; right: -6px; z-index: 12;
+      background: var(--crimson); color: #fff; font-size: 10px; font-weight: 900;
+      padding: 2px 7px; border-radius: 999px; box-shadow: 0 0 12px rgba(239,68,68,0.85);
+      animation: bounceDot 1.4s infinite;
+    }
+
+    /* =========================================
+       SCENE 1: ILLUSTRATED HOME DESK ROOM
+       ========================================= */
     #desk-scene {
       width: 100%; height: 100%; display: flex; flex-direction: column;
+      background: linear-gradient(180deg, #161d29 0%, #1d2636 46%, #12161f 47%);
+      position: relative; overflow: hidden;
+    }
+    .room-wall {
+      height: 44%; position: relative; padding: 14px 28px;
       background:
-        radial-gradient(circle at 50% 15%, rgba(245, 158, 11, 0.14) 0%, transparent 55%),
-        linear-gradient(180deg, #161210 0%, var(--wood-light) 48%, var(--wood-dark) 100%);
-    }
-    .desk-grid {
-      flex: 1; display: grid; grid-template-columns: 1.15fr 1fr 0.95fr; gap: 16px;
-      padding: 16px 18px; overflow: hidden;
-    }
-    .desk-mat {
-      background: rgba(15, 21, 30, 0.88); backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.12); border-radius: 18px;
-      padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;
-      box-shadow: 0 16px 36px rgba(0,0,0,0.55);
-    }
-    .mat-title {
-      font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.6px;
-      color: var(--gold); display: flex; justify-content: space-between; align-items: center;
-    }
-    .scroll-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 2px; }
-    .deck-box-card {
-      background: #0b1018; border: 1px solid var(--arena-rim); border-radius: 12px;
-      padding: 11px 13px; display: flex; justify-content: space-between; align-items: center;
-      cursor: pointer; transition: border-color 0.15s;
-    }
-    .deck-box-card.selected { border-color: var(--gold); background: rgba(245,158,11,0.08); }
-    .flyer-card {
-      background: linear-gradient(135deg, #172030, #0d131d); border: 1px solid var(--arena-rim);
-      border-radius: 12px; padding: 11px 13px; display: flex; flex-direction: column; gap: 6px;
-    }
-    .rank-row {
+        radial-gradient(circle at 22% 30%, rgba(251, 191, 36, 0.14) 0%, transparent 45%),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 40px, transparent 40px, transparent 80px);
       display: flex; justify-content: space-between; align-items: center;
-      background: #0b1018; border: 1px solid rgba(255,255,255,0.06);
-      padding: 8px 11px; border-radius: 10px; font-size: 12px;
     }
-    .rank-row.me { border-color: var(--cyan); background: rgba(56,189,248,0.1); }
+    /* Wall Window */
+    .wall-window {
+      width: 190px; height: 135px; border-radius: 12px;
+      background: linear-gradient(180deg, #0c192c 0%, #1e3a5f 65%, #f59e0b 140%);
+      border: 6px solid #2b1d14; box-shadow: inset 0 0 25px rgba(0,0,0,0.6), 0 10px 25px rgba(0,0,0,0.5);
+      position: relative; overflow: hidden;
+    }
+    .wall-window::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent 48%, #2b1d14 48%, #2b1d14 52%, transparent 52%),
+                  linear-gradient(0deg, transparent 48%, #2b1d14 48%, #2b1d14 52%, transparent 52%);
+    }
+    /* Wall Corkboard & Trophy Plaque */
+    .wall-plaque {
+      width: 250px; height: 132px; border-radius: 14px;
+      background: linear-gradient(145deg, #2b1d12, #1a110a);
+      border: 3px solid #b45309; padding: 12px 16px;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.65);
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .wall-shelf {
+      width: 210px; height: 125px; display: flex; flex-direction: column; justify-content: flex-end;
+    }
+    .shelf-items { display: flex; align-items: flex-end; justify-content: space-around; padding: 0 10px; }
+    .mini-box { width: 34px; height: 52px; border-radius: 5px; border: 1.5px solid rgba(255,255,255,0.25); }
+    .shelf-plank { height: 12px; background: #3b2416; border-radius: 4px; box-shadow: 0 8px 14px rgba(0,0,0,0.7); }
 
-    /* SCENE 2: LOCAL GAME STORE */
+    /* Wooden Desk Surface */
+    .desk-surface {
+      flex: 1; position: relative;
+      background:
+        radial-gradient(ellipse at 50% 10%, rgba(251, 191, 36, 0.16) 0%, transparent 60%),
+        repeating-linear-gradient(0deg, #4a2e1b 0px, #3f2616 18px, #4e311d 36px);
+      border-top: 8px solid #633e25;
+      box-shadow: inset 0 20px 40px rgba(0,0,0,0.55);
+      display: flex; align-items: center; justify-content: space-around;
+      padding: 12px 24px 22px; gap: 16px;
+    }
+
+    /* Desk Prop 1: iPad / Event Computer */
+    .prop-ipad {
+      width: 220px; height: 158px; border-radius: 16px;
+      background: #090d14; border: 6px solid #334155;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.75);
+      padding: 10px; display: flex; flex-direction: column; justify-content: space-between;
+      transform: rotate(-3deg);
+    }
+    .ipad-screen {
+      flex: 1; border-radius: 8px;
+      background: linear-gradient(135deg, #0f2942, #1e1b4b);
+      padding: 8px; display: flex; flex-direction: column; justify-content: space-between;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    /* Desk Prop 2: Collection Binder & Card Stacks */
+    .prop-binder-cluster {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .leather-binder {
+      width: 146px; height: 174px; border-radius: 8px 16px 16px 8px;
+      background: linear-gradient(135deg, #7c2d12, #431407);
+      border: 2px solid #d97706; border-left: 12px solid #290d05;
+      box-shadow: 6px 16px 28px rgba(0,0,0,0.75);
+      padding: 14px 12px; display: flex; flex-direction: column; justify-content: space-between;
+      transform: rotate(2deg);
+    }
+    .card-stack-pile {
+      width: 104px; height: 144px; border-radius: 10px;
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      border: 2px solid var(--cyan);
+      box-shadow: 4px 4px 0 #334155, 8px 8px 0 #1e293b, 12px 16px 26px rgba(0,0,0,0.8);
+      padding: 10px; display: flex; flex-direction: column; justify-content: space-between;
+      transform: rotate(-4deg);
+    }
+
+    /* Desk Prop 3: Desk Mailbox */
+    .prop-mailbox {
+      width: 136px; height: 152px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    }
+    .mailbox-body {
+      width: 118px; height: 82px; border-radius: 40px 40px 8px 8px;
+      background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+      border: 2px solid #93c5fd; position: relative;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center; font-size: 26px;
+    }
+    .mail-flag {
+      position: absolute; right: -8px; top: 14px; width: 10px; height: 38px;
+      background: #ef4444; border-radius: 4px; transform-origin: bottom center;
+      transition: transform 0.3s ease;
+    }
+    .mail-flag.down { transform: rotate(90deg); background: #64748b; }
+    .mailbox-post { width: 22px; height: 42px; background: #2b1a0e; }
+
+    /* Desk Prop 4: Car Keys & Road Map to Store */
+    .prop-travel-keys {
+      width: 168px; height: 148px; border-radius: 14px;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 2px solid var(--emerald);
+      box-shadow: 0 14px 28px rgba(0,0,0,0.75);
+      padding: 12px; display: flex; flex-direction: column; justify-content: space-between;
+      transform: rotate(4deg);
+    }
+
+    /* =========================================
+       SCENE 2: ILLUSTRATED LOCAL GAME STORE
+       ========================================= */
     #store-scene {
       width: 100%; height: 100%; display: flex; flex-direction: column;
+      background: linear-gradient(180deg, #111827 0%, #1e293b 48%, #0f172a 49%);
+      position: relative; overflow: hidden;
+    }
+    .store-backwall {
+      height: 44%; padding: 14px 26px;
       background:
-        radial-gradient(circle at 25% 15%, rgba(56, 189, 248, 0.16) 0%, transparent 55%),
-        linear-gradient(180deg, #0c1320 0%, #080c14 100%);
+        radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.16) 0%, transparent 55%),
+        linear-gradient(180deg, #0b111e, #162033);
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
     }
-    .store-banner {
-      margin: 14px 18px 0; padding: 14px 18px; border-radius: 16px;
-      background: linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95));
-      border: 1px solid var(--arena-rim);
-      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+    /* Neon Store Sign */
+    .neon-sign {
+      padding: 12px 20px; border-radius: 14px;
+      background: rgba(9, 13, 22, 0.9);
+      border: 2px solid var(--cyan);
+      box-shadow: 0 0 24px rgba(56, 189, 248, 0.4), inset 0 0 14px rgba(56, 189, 248, 0.25);
+      text-align: center;
     }
-    .store-grid {
-      flex: 1; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px;
-      padding: 14px 18px 18px; overflow: hidden;
-    }
-    .tourney-card {
-      background: #0d1420; border: 1px solid var(--arena-rim); border-radius: 14px;
-      padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    /* Tournament Kiosk Monitor */
+    .prop-kiosk {
+      width: 260px; height: 145px; border-radius: 14px;
+      background: #090d16; border: 4px solid var(--gold);
+      box-shadow: 0 0 26px rgba(245, 158, 11, 0.35);
+      padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between;
     }
 
-    /* SCENE 3: ARENA BATTLEFIELD */
+    /* Store Floor & Glass Display Counter */
+    .store-floor {
+      flex: 1; background: linear-gradient(180deg, #1b2434 0%, #0d121b 100%);
+      border-top: 6px solid #334155;
+      padding: 14px 24px 22px;
+      display: flex; align-items: center; justify-content: space-around; gap: 18px;
+    }
+    /* Glass Booster Display Case */
+    .prop-glass-case {
+      width: 250px; height: 168px; border-radius: 14px;
+      background: linear-gradient(145deg, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.92));
+      border: 2px solid rgba(147, 197, 253, 0.55);
+      box-shadow: 0 16px 32px rgba(0,0,0,0.75);
+      padding: 12px; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .booster-packs-row { display: flex; justify-content: center; gap: 8px; }
+    .pack-foil {
+      width: 48px; height: 74px; border-radius: 6px;
+      background: linear-gradient(135deg, #f59e0b, #b45309);
+      border: 1.5px solid #fde68a; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+    }
+
+    /* Store Play Tables */
+    .prop-play-tables {
+      width: 280px; height: 168px; border-radius: 16px;
+      background: linear-gradient(145deg, #133827, #091d14);
+      border: 3px solid #2b1d12;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.75);
+      padding: 12px; display: flex; flex-direction: column; justify-content: space-between;
+    }
+
+    /* =========================================
+       SCENE 3: ARENA BATTLEFIELD
+       ========================================= */
     #arena-board {
       width: 100%; height: 100%; position: relative; overflow: hidden;
-      background:
-        radial-gradient(ellipse at 50% 50%, rgba(30, 58, 95, 0.35) 0%, rgba(7, 10, 15, 0.96) 78%),
-        repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 10px);
+      background: radial-gradient(ellipse at 50% 50%, rgba(30, 58, 95, 0.35) 0%, rgba(7, 10, 15, 0.96) 78%);
       display: flex; flex-direction: column; justify-content: space-between;
     }
     #arena-board.shake { animation: boardShake 0.32s ease; }
@@ -275,13 +409,14 @@
     }
     .dmg-float.heal { color: #22c55e; text-shadow: 0 0 18px rgba(34,197,94,0.95), 0 3px 0 #000; }
     .modal-backdrop {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.72); backdrop-filter: blur(8px);
+      position: fixed; inset: 0; background: rgba(0,0,0,0.74); backdrop-filter: blur(8px);
       display: flex; align-items: center; justify-content: center; z-index: 80; padding: 20px;
     }
     .sheet-box {
-      width: 100%; max-width: 520px; max-height: 84dvh; overflow-y: auto;
+      width: 100%; max-width: 540px; max-height: 84dvh; overflow-y: auto;
       background: #111827; border: 1px solid var(--arena-rim); border-radius: 18px; padding: 20px;
     }
+    @keyframes bounceDot { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
     @keyframes cardSlam { 0% { transform: scale(1.4) translateY(-16px); opacity: 0.3; } 100% { transform: scale(1); opacity: 1; } }
     @keyframes floatDamage { 0% { opacity: 1; transform: translate(-50%, 0) scale(0.7); } 100% { opacity: 0; transform: translate(-50%, -62px) scale(1); } }
     @keyframes boardShake { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-6px,4px); } 75% { transform: translate(6px,-4px); } }
@@ -327,120 +462,167 @@
     </div>
   </div>
 
-  <!-- SCENE 1: HOME DESK -->
+  <!-- SCENE 1: ILLUSTRATED HOME DESK -->
   <div id="desk-scene" class="hidden">
     <div class="scene-topbar">
-      <div class="scene-nav">
-        <strong style="color:var(--gold); font-size:16px; margin-right:6px;">✦ AetherTable</strong>
-        <button class="nav-tab active" onclick="goScene('desk')">🪵 Home Desk</button>
-        <button class="nav-tab" onclick="goScene('store')">🏪 Travel to Store</button>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <strong style="color:var(--gold); font-size:16px;">🪵 Home Desk</strong>
+        <span class="pill">Active Deck: <strong id="desk-active-deck" style="color:var(--cyan);">Red Goblin Burn</strong></span>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="pill">🪙 <strong id="desk-gold">250</strong></span>
-        <span class="pill">🏅 <strong id="desk-rp">100</strong> RP</span>
-        <button class="btn-ghost" onclick="claimDailyDeskGold()">+100g Daily</button>
+        <span class="pill">🏅 <strong id="desk-rp">100</strong> RP (<span id="desk-state-pill">FL</span>)</span>
         <button class="btn-ghost" onclick="signOutUser()">Sign Out</button>
       </div>
     </div>
 
-    <div class="desk-grid">
-      <!-- Column 1: Deck Boxes & Card Workshop -->
-      <div class="desk-mat">
-        <div class="mat-title">
-          <span>📦 Deck Boxes</span>
-          <button class="btn-ghost" style="padding:4px 9px; font-size:11px;" onclick="openDeckBuilderModal()">+ Add Card</button>
+    <!-- Room Back Wall (Window, Trophy Ranking Plaque, Card Shelf) -->
+    <div class="room-wall">
+      <div class="wall-window"></div>
+
+      <!-- Interactive Trophy & State/USA Ranking Plaque -->
+      <div class="prop-item wall-plaque" onclick="openRankingsModal()">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; font-weight:900; color:var(--gold); letter-spacing:0.6px;">🏆 STANDINGS PLAQUE</span>
+          <span style="font-size:11px; color:var(--cyan);" id="plaque-state-tag">FL #2</span>
         </div>
-        <div class="scroll-area" id="desk-deck-list"></div>
-        <div style="display:flex; gap:8px;">
-          <button class="btn-cyan" style="flex:1;" onclick="startCasualDeskGame()">🎴 Goldfish / Practice</button>
-          <button class="btn-gold" style="flex:1;" onclick="goScene('store')">🚗 Drive to Store →</button>
-        </div>
+        <div style="font-size:16px; font-weight:900;" id="plaque-player-name">Nerabz</div>
+        <div style="font-size:11px; color:var(--muted);">Tap plaque for State & Nationwide Ladder</div>
+        <div class="prop-tag">🏆 State & USA Rankings</div>
       </div>
 
-      <!-- Column 2: Tournament Schedule Board -->
-      <div class="desk-mat">
-        <div class="mat-title">
-          <span>📅 Tournament Flyers</span>
-          <span style="font-size:11px; color:var(--muted);">Updated Live</span>
+      <!-- Decorative Deck Box Shelf -->
+      <div class="wall-shelf">
+        <div class="shelf-items">
+          <div class="mini-box" style="background:#991b1b;"></div>
+          <div class="mini-box" style="background:#1e40af;"></div>
+          <div class="mini-box" style="background:#166534;"></div>
+          <div class="mini-box" style="background:#854d0e;"></div>
         </div>
-        <div class="scroll-area" id="desk-schedule-list"></div>
+        <div class="shelf-plank"></div>
       </div>
+    </div>
 
-      <!-- Column 3: State & Nationwide Standings -->
-      <div class="desk-mat">
-        <div class="mat-title">
-          <span>🏆 Rankings</span>
-          <div style="display:flex; gap:4px;">
-            <button class="btn-ghost" id="rank-btn-state" style="padding:3px 8px; font-size:11px; border-color:var(--cyan);" onclick="setRankScope('state')">State</button>
-            <button class="btn-ghost" id="rank-btn-nat" style="padding:3px 8px; font-size:11px;" onclick="setRankScope('national')">USA</button>
+    <!-- Mahogany Desk Surface with Interactive Physical Objects -->
+    <div class="desk-surface">
+      <!-- Object 1: iPad / Event Computer -->
+      <div class="prop-item prop-ipad" onclick="openTournamentTabletModal()">
+        <div class="ipad-screen">
+          <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--cyan); font-weight:800;">
+            <span>📡 EVENT FINDER</span>
+            <span>LIVE</span>
           </div>
+          <div style="font-size:12px; font-weight:900; color:#fff; line-height:1.25;">
+            4 Store Tournaments Open Near You
+          </div>
+          <div style="font-size:10px; color:var(--gold);">Tap iPad to browse events →</div>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--muted);">
-          <span>Planeswalker: <strong id="desk-player-name" style="color:var(--text);">Nerabz</strong></span>
-          <select id="desk-state-select" onchange="changeHomeState(this.value)" style="background:#0b1018; color:var(--cyan); border:1px solid var(--arena-rim); border-radius:8px; padding:3px 6px; font-size:12px !important;">
-            <option value="FL">Florida (FL)</option>
-            <option value="GA">Georgia (GA)</option>
-            <option value="AL">Alabama (AL)</option>
-            <option value="TX">Texas (TX)</option>
-            <option value="CA">California (CA)</option>
-            <option value="NY">New York (NY)</option>
-            <option value="WA">Washington (WA)</option>
-          </select>
+        <div class="prop-tag">📱 Tournament iPad</div>
+      </div>
+
+      <!-- Object 2: Collection Binder & Active Deck Stack -->
+      <div class="prop-binder-cluster">
+        <div class="prop-item leather-binder" onclick="openBinderModal()">
+          <div style="font-size:11px; font-weight:900; color:var(--gold); letter-spacing:0.5px;">COLLECTION</div>
+          <div style="font-size:28px; text-align:center;">📖</div>
+          <div style="font-size:11px; color:#fed7aa; text-align:center;" id="binder-card-count">60 Cards Stored</div>
+          <div class="prop-tag">📖 Card Binder</div>
         </div>
-        <div class="scroll-area" id="desk-rankings-list"></div>
+
+        <div class="prop-item card-stack-pile" onclick="openDeckBoxModal()">
+          <div style="font-size:10px; font-weight:800; color:var(--cyan);">ACTIVE DECK</div>
+          <div style="font-size:13px; font-weight:900; line-height:1.2;" id="stack-deck-name">Red Goblin Burn</div>
+          <div style="font-size:10px; color:var(--muted);">Tap to swap or test</div>
+          <div class="prop-tag">🃏 Deck Boxes</div>
+        </div>
+      </div>
+
+      <!-- Object 3: Desk Mailbox (Daily Gold & Booster Deliveries) -->
+      <div class="prop-item prop-mailbox" onclick="openMailboxModal()">
+        <div class="notif-dot" id="mail-badge">1</div>
+        <div class="mailbox-body">
+          <div class="mail-flag" id="mail-flag"></div>
+          <span>📦</span>
+        </div>
+        <div class="mailbox-post"></div>
+        <div class="prop-tag">📬 Mailbox</div>
+      </div>
+
+      <!-- Object 4: Car Keys & GPS Map to Travel to Store -->
+      <div class="prop-item prop-travel-keys" onclick="openTravelModal()">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:10px; font-weight:900; color:var(--emerald);">🗺️ STORE GPS</span>
+          <span style="font-size:18px;">🔑</span>
+        </div>
+        <div style="font-size:13px; font-weight:900; line-height:1.2;">Drive to Local Game Store</div>
+        <div style="font-size:10px; color:var(--muted);">Enter Gold tournaments & multiplayer pods</div>
+        <div class="prop-tag">🚗 Travel to Store</div>
       </div>
     </div>
   </div>
 
-  <!-- SCENE 2: LOCAL GAME STORE -->
+  <!-- SCENE 2: ILLUSTRATED LOCAL GAME STORE -->
   <div id="store-scene" class="hidden">
     <div class="scene-topbar">
-      <div class="scene-nav">
-        <strong style="color:var(--gold); font-size:16px; margin-right:6px;">✦ AetherTable</strong>
-        <button class="nav-tab" onclick="goScene('desk')">🪵 Home Desk</button>
-        <button class="nav-tab active" onclick="goScene('store')">🏪 Local Game Store</button>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="btn-ghost" onclick="goScene('desk')">← Drive Home to Desk</button>
+        <strong style="color:var(--cyan); font-size:15px;" id="store-top-title">Panhandle Card Citadel</strong>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
-        <span class="pill">Active Deck: <strong id="store-active-deck" style="color:var(--cyan);">Red Aggro</strong></span>
+        <span class="pill">Active Deck: <strong id="store-active-deck" style="color:var(--cyan);">Red Goblin Burn</strong></span>
         <span class="pill">🪙 <strong id="store-gold">250</strong></span>
         <span class="pill">🏅 <strong id="store-rp">100</strong> RP</span>
       </div>
     </div>
 
-    <div class="store-banner">
-      <div>
-        <div style="font-size:11px; color:var(--cyan); font-weight:800; text-transform:uppercase;">Current Venue</div>
-        <div style="font-size:19px; font-weight:900;" id="store-venue-name">Panhandle Card Citadel • Midway / Tallahassee, FL</div>
-        <div style="font-size:12px; color:var(--muted);" id="store-venue-sub">Sanctioned Gold Tournaments & Open Multiplayer Pods</div>
+    <!-- Store Back Wall: Neon Sign & Tournament Registration Kiosk -->
+    <div class="store-backwall">
+      <div class="neon-sign">
+        <div style="font-size:10px; color:var(--cyan); letter-spacing:1.2px; font-weight:800;">OFFICIAL LGS VENUE</div>
+        <div style="font-size:18px; font-weight:900; color:#fff; margin:2px 0;" id="store-neon-name">PANHANDLE CARD CITADEL</div>
+        <div style="font-size:11px; color:var(--muted);" id="store-neon-city">Midway / Tallahassee, FL</div>
       </div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <select id="store-selector" onchange="selectStore(this.value)" style="background:#070a0f; color:var(--text); border:1px solid var(--arena-rim); padding:9px 12px; border-radius:10px;">
-          <option value="0">Panhandle Card Citadel (FL)</option>
-          <option value="1">Gulf Coast Mana Vault (FL)</option>
-          <option value="2">Peachtree Planeswalkers (GA)</option>
-          <option value="3">Lone Star Mox Club (TX)</option>
-        </select>
-        <button class="btn-ghost" onclick="goScene('desk')">← Back to Desk</button>
+
+      <!-- Interactive Tournament Kiosk -->
+      <div class="prop-item prop-kiosk" onclick="openStoreTournamentModal()">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; font-weight:900; color:var(--gold);">🏆 TOURNAMENT KIOSK</span>
+          <span style="font-size:10px; color:var(--emerald);" id="kiosk-run-status">OPEN</span>
+        </div>
+        <div style="font-size:13px; font-weight:900;" id="kiosk-headline">Friday Night Magic (50g Entry)</div>
+        <div style="font-size:11px; color:var(--muted);">Tap kiosk to enter Gold events & win State/USA RP</div>
+        <div class="prop-tag">🏆 Enter Tournament</div>
       </div>
+
+      <button class="btn-ghost" onclick="openTravelModal()">🗺️ Switch Store</button>
     </div>
 
-    <div class="store-grid">
-      <!-- Left: Store Tournaments & Live Pods -->
-      <div class="desk-mat">
-        <div class="mat-title">
-          <span>⚔️ Store Events & Tournaments</span>
-          <span id="active-run-badge" class="hidden" style="color:var(--emerald); font-size:12px;"></span>
+    <!-- Store Floor: Glass Booster Counter + Open Multiplayer Play Tables -->
+    <div class="store-floor">
+      <!-- Glass Display Counter (Buy Booster Packs with Gold) -->
+      <div class="prop-item prop-glass-case" onclick="openBoosterShopModal()">
+        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; color:#93c5fd;">
+          <span>💎 DISPLAY COUNTER</span>
+          <span>100g / Pack</span>
         </div>
-        <div class="scroll-area" id="store-events-list"></div>
+        <div class="booster-packs-row">
+          <div class="pack-foil">🔥</div>
+          <div class="pack-foil" style="background:linear-gradient(135deg,#38bdf8,#1d4ed8);">💧</div>
+          <div class="pack-foil" style="background:linear-gradient(135deg,#22c55e,#15803d);">🌲</div>
+        </div>
+        <div style="font-size:11px; color:var(--muted); text-align:center;">Tap counter to buy Booster Packs for your Binder</div>
+        <div class="prop-tag">🛒 Booster Counter</div>
       </div>
 
-      <!-- Right: Live Multiplayer Tables at this Store -->
-      <div class="desk-mat">
-        <div class="mat-title">
-          <span>🌐 Live Player Tables</span>
-          <button class="btn-gold" style="padding:4px 10px; font-size:11px;" onclick="createLiveRoom()">+ Host Table</button>
+      <!-- Open Multiplayer Play Tables -->
+      <div class="prop-item prop-play-tables" onclick="openMultiplayerTablesModal()">
+        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; color:var(--emerald);">
+          <span>⚔️ FEATURE TABLES</span>
+          <span id="live-tables-count">Live Pods</span>
         </div>
-        <div class="scroll-area" id="store-room-list"></div>
+        <div style="font-size:14px; font-weight:900; text-align:center;">Sit at Open 2-Player Table</div>
+        <div style="font-size:11px; color:#cbd5e1; text-align:center;">Host a room or join another live Planeswalker</div>
+        <div class="prop-tag">🌐 Multiplayer Tables</div>
       </div>
     </div>
   </div>
@@ -504,6 +686,7 @@
     <div id="vfx-layer"></div>
   </div>
 
+  <!-- MODAL CONTAINER -->
   <div id="modal-backdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeModal()">
     <div class="sheet-box" id="modal-content"></div>
   </div>
@@ -529,14 +712,23 @@
       ]}
     ];
 
+    const BOOSTER_POOL = [
+      { name: "Baneslayer Angel", type: "Creature — Angel", cost: 5, power: 5, toughness: 5, text: "Flying, lifelink" },
+      { name: "Goblin Guide", type: "Creature — Goblin", cost: 1, power: 2, toughness: 2, haste: true, text: "Haste" },
+      { name: "Lava Axe", type: "Sorcery", cost: 5, damage: 5, text: "Deal 5 damage to opponent." },
+      { name: "Thragtusk", type: "Creature — Beast", cost: 5, power: 5, toughness: 3, text: "Trample" },
+      { name: "Lightning Helix", type: "Instant", cost: 2, damage: 3, heal: 3, text: "Deal 3 damage and gain 3 life." },
+      { name: "Primeval Titan", type: "Creature — Giant", cost: 6, power: 6, toughness: 6, text: "Trample" }
+    ];
+
     const NPC_LEADERBOARD = [
-      { name: "Kaito_FL", state: "FL", rp: 640, wins: 19 },
-      { name: "Elspeth_Panhandle", state: "FL", rp: 480, wins: 14 },
-      { name: "Chandra_Nalaar", state: "CA", rp: 890, wins: 27 },
-      { name: "Jace_Beleren", state: "NY", rp: 820, wins: 24 },
-      { name: "Liliana_Vess", state: "TX", rp: 760, wins: 22 },
-      { name: "Garruk_Wild", state: "GA", rp: 540, wins: 16 },
-      { name: "Teferi_Time", state: "WA", rp: 710, wins: 21 }
+      { name: "Kaito_FL", state: "FL", rp: 640 },
+      { name: "Elspeth_Panhandle", state: "FL", rp: 480 },
+      { name: "Chandra_Nalaar", state: "CA", rp: 890 },
+      { name: "Jace_Beleren", state: "NY", rp: 820 },
+      { name: "Liliana_Vess", state: "TX", rp: 760 },
+      { name: "Garruk_Wild", state: "GA", rp: 540 },
+      { name: "Teferi_Time", state: "WA", rp: 710 }
     ];
 
     const DEFAULT_DECKS = [
@@ -599,14 +791,16 @@
     }
 
     let authMode = "login";
-    let rankScope = "state";
     let selectedStoreIdx = 0;
+    let cachedRooms = [];
     let userProfile = {
       id: null, name: "Nerabz", email: "", state: "FL",
       gold: 250, rp: 100, wins: 0,
+      hasMail: true,
       selectedDeckId: "deck-red",
       decks: JSON.parse(JSON.stringify(DEFAULT_DECKS)),
-      activeTourney: null // { eventId, title, storeName, round, maxRounds, wins, prizeGold, prizeRP }
+      binderExtras: [],
+      activeTourney: null
     };
 
     let liveRoomCode = null;
@@ -655,8 +849,10 @@
         gold: saved.gold ?? 250,
         rp: saved.rp ?? 100,
         wins: saved.wins ?? 0,
+        hasMail: saved.hasMail ?? true,
         selectedDeckId: saved.selectedDeckId || "deck-red",
         decks: saved.decks || JSON.parse(JSON.stringify(DEFAULT_DECKS)),
+        binderExtras: saved.binderExtras || [],
         activeTourney: saved.activeTourney || null
       };
       saveProfile();
@@ -667,7 +863,7 @@
 
     function saveProfile() {
       if (userProfile.id) localStorage.setItem("at_prof_" + userProfile.id, JSON.stringify(userProfile));
-      refreshAllHUDs();
+      refreshPropsUI();
     }
 
     async function signOutUser() {
@@ -682,210 +878,336 @@
       document.getElementById("desk-scene").classList.toggle("hidden", sceneName !== "desk");
       document.getElementById("store-scene").classList.toggle("hidden", sceneName !== "store");
       document.getElementById("arena-board").classList.toggle("hidden", sceneName !== "arena");
-      refreshAllHUDs();
-      if (sceneName === "desk") renderDeskScene();
-      if (sceneName === "store") renderStoreScene();
-    }
-
-    function refreshAllHUDs() {
-      const deck = getSelectedDeck();
-      ["desk-gold", "store-gold", "hud-gold"].forEach(id => {
-        const el = document.getElementById(id); if (el) el.textContent = userProfile.gold;
-      });
-      ["desk-rp", "store-rp", "hud-rp"].forEach(id => {
-        const el = document.getElementById(id); if (el) el.textContent = userProfile.rp;
-      });
-      const pn = document.getElementById("desk-player-name"); if (pn) pn.textContent = userProfile.name;
-      const ss = document.getElementById("desk-state-select"); if (ss) ss.value = userProfile.state;
-      const ad = document.getElementById("store-active-deck"); if (ad) ad.textContent = deck.name;
+      refreshPropsUI();
     }
 
     function getSelectedDeck() {
       return userProfile.decks.find(d => d.id === userProfile.selectedDeckId) || userProfile.decks[0];
     }
 
-    function claimDailyDeskGold() {
-      userProfile.gold += 100;
-      saveProfile();
-      renderDeskScene();
+    function refreshPropsUI() {
+      const deck = getSelectedDeck();
+      const totalCards = userProfile.decks.reduce((acc, d) => acc + d.cards.reduce((s, c) => s + (c.qty || 1), 0), 0) + userProfile.binderExtras.length;
+
+      ["desk-gold", "store-gold", "hud-gold"].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = userProfile.gold; });
+      ["desk-rp", "store-rp", "hud-rp"].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = userProfile.rp; });
+
+      document.getElementById("desk-active-deck").textContent = deck.name;
+      document.getElementById("store-active-deck").textContent = deck.name;
+      document.getElementById("stack-deck-name").textContent = deck.name;
+      document.getElementById("binder-card-count").textContent = `${totalCards} Cards Stored`;
+      document.getElementById("desk-state-pill").textContent = userProfile.state;
+      document.getElementById("plaque-player-name").textContent = userProfile.name;
+
+      // Compute State Rank
+      const stateList = [...NPC_LEADERBOARD.filter(p => p.state === userProfile.state), { name: userProfile.name, rp: userProfile.rp }].sort((a, b) => b.rp - a.rp);
+      const myRank = stateList.findIndex(p => p.name === userProfile.name) + 1;
+      document.getElementById("plaque-state-tag").textContent = `${userProfile.state} #${myRank}`;
+
+      // Mailbox Flag
+      const badge = document.getElementById("mail-badge");
+      const flag = document.getElementById("mail-flag");
+      if (userProfile.hasMail) {
+        badge.classList.remove("hidden");
+        flag.classList.remove("down");
+      } else {
+        badge.classList.add("hidden");
+        flag.classList.add("down");
+      }
+
+      // Store Visual Labels
+      const store = STORES[selectedStoreIdx] || STORES[0];
+      document.getElementById("store-top-title").textContent = store.name;
+      document.getElementById("store-neon-name").textContent = store.name.toUpperCase();
+      document.getElementById("store-neon-city").textContent = store.city;
+      document.getElementById("kiosk-headline").textContent = userProfile.activeTourney
+        ? `In Progress: Round ${userProfile.activeTourney.round}/${userProfile.activeTourney.maxRounds}`
+        : `${store.events[0].title} (${store.events[0].fee}g)`;
+      document.getElementById("kiosk-run-status").textContent = userProfile.activeTourney ? "ACTIVE RUN" : "OPEN";
     }
 
-    function changeHomeState(st) {
-      userProfile.state = st;
-      saveProfile();
-      renderDeskScene();
-    }
-
-    function setRankScope(scope) {
-      rankScope = scope;
-      document.getElementById("rank-btn-state").style.borderColor = scope === "state" ? "var(--cyan)" : "var(--arena-rim)";
-      document.getElementById("rank-btn-nat").style.borderColor = scope === "national" ? "var(--cyan)" : "var(--arena-rim)";
-      renderDeskScene();
-    }
-
-    function renderDeskScene() {
-      // 1. Deck Boxes
-      const deckList = document.getElementById("desk-deck-list");
-      deckList.innerHTML = userProfile.decks.map(d => {
-        const count = d.cards.reduce((s, c) => s + (c.qty || 1), 0);
-        const isSel = d.id === userProfile.selectedDeckId;
-        return `
-          <div class="deck-box-card ${isSel ? 'selected' : ''}" onclick="selectDeck('${d.id}')">
-            <div>
-              <div style="font-weight:800; font-size:14px;">${isSel ? '★ ' : ''}${d.name}</div>
-              <div style="font-size:11px; color:var(--muted);">${d.format} • ${count} Cards</div>
+    /* =========================================
+       HOME DESK OBJECT MODALS
+       ========================================= */
+    function openTournamentTabletModal() {
+      const box = document.getElementById("modal-content");
+      box.innerHTML = `
+        <h3 style="margin-top:0; color:var(--cyan);">📱 Event Finder Tablet</h3>
+        <p style="font-size:12px; color:var(--muted);">Select a tournament below to drive to the host Local Game Store:</p>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          ${STORES.flatMap((st, sIdx) => st.events.map(ev => `
+            <div style="background:#0b1018; border:1px solid var(--arena-rim); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+              <div>
+                <div style="font-weight:800; font-size:14px;">${ev.title}</div>
+                <div style="font-size:11px; color:var(--muted);">📍 ${st.name} (${st.city}) • ${ev.time}</div>
+                <div style="font-size:11px; color:var(--emerald);">Entry: ${ev.fee}g • Prize: ${ev.prizeGold}g + ${ev.prizeRP} RP</div>
+              </div>
+              <button class="btn-gold" onclick="closeModal(); travelToStore(${sIdx});">Drive Here →</button>
             </div>
-            <button class="btn-ghost" style="padding:5px 9px; font-size:11px;" onclick="event.stopPropagation(); inspectDeck('${d.id}')">Inspect</button>
-          </div>
-        `;
-      }).join("");
-
-      // 2. Upcoming Tournaments Flyer Board
-      const schedList = document.getElementById("desk-schedule-list");
-      schedList.innerHTML = STORES.flatMap((st, sIdx) => st.events.map(ev => `
-        <div class="flyer-card">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong style="font-size:13px; color:var(--text);">${ev.title}</strong>
-            <span style="font-size:11px; color:var(--gold); font-weight:800;">Entry: ${ev.fee}g</span>
-          </div>
-          <div style="font-size:11px; color:var(--muted);">📍 ${st.name} (${st.city}) • ${ev.time}</div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
-            <span style="font-size:11px; color:var(--emerald);">Prize: ${ev.prizeGold}g + ${ev.prizeRP} RP</span>
-            <button class="btn-gold" style="padding:5px 10px; font-size:11px;" onclick="travelToStore(${sIdx})">Travel Here →</button>
-          </div>
+          `)).join("")}
         </div>
-      `)).join("");
-
-      // 3. State & Nationwide Rankings
-      const combined = [
-        ...NPC_LEADERBOARD,
-        { name: userProfile.name + " (You)", state: userProfile.state, rp: userProfile.rp, wins: userProfile.wins, isMe: true }
-      ]
-        .filter(p => rankScope === "national" || p.state === userProfile.state)
-        .sort((a, b) => b.rp - a.rp);
-
-      document.getElementById("desk-rankings-list").innerHTML = combined.map((p, idx) => `
-        <div class="rank-row ${p.isMe ? 'me' : ''}">
-          <div><strong>#${idx + 1}</strong> ${p.name} <span style="color:var(--muted); font-size:10px;">[${p.state}]</span></div>
-          <div style="color:var(--gold); font-weight:800;">${p.rp} RP</div>
-        </div>
-      `).join("");
+        <button class="btn-ghost" style="width:100%; margin-top:14px;" onclick="closeModal()">Put Down iPad</button>
+      `;
+      document.getElementById("modal-backdrop").classList.remove("hidden");
     }
 
-    function selectDeck(deckId) {
-      userProfile.selectedDeckId = deckId;
+    function openBinderModal() {
+      const deck = getSelectedDeck();
+      const box = document.getElementById("modal-content");
+      box.innerHTML = `
+        <h3 style="margin-top:0; color:var(--gold);">📖 Collection Binder (${deck.name})</h3>
+        <div style="max-height:240px; overflow-y:auto; margin-bottom:12px;">
+          ${deck.cards.map(c => `
+            <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--arena-rim); font-size:13px;">
+              <span><strong>${c.qty}x</strong> ${c.name} <span style="color:var(--muted);">(${c.type})</span></span>
+              <span style="color:var(--gold);">${c.cost ? c.cost + ' Mana' : 'Land'}</span>
+            </div>
+          `).join("")}
+          ${userProfile.binderExtras.map((c, i) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--arena-rim); font-size:13px;">
+              <span>🆕 <strong>${c.name}</strong> <span style="color:var(--muted);">(${c.type})</span></span>
+              <button class="btn-cyan" style="padding:3px 8px; font-size:11px;" onclick="moveBinderCardToDeck(${i})">+ Add to Deck</button>
+            </div>
+          `).join("")}
+        </div>
+        <div style="background:#0b1018; padding:10px; border-radius:12px; border:1px solid var(--arena-rim);">
+          <div style="font-size:11px; color:var(--cyan); font-weight:800; margin-bottom:6px;">IMPORT SCRYFALL CARD TO BINDER</div>
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="new-card-name" placeholder="Card name (e.g. Serra Angel)" style="flex:1; background:#070a0f; border:1px solid var(--arena-rim); color:#fff; padding:8px; border-radius:8px;" />
+            <select id="new-card-type" style="background:#070a0f; border:1px solid var(--arena-rim); color:#fff; padding:8px; border-radius:8px;">
+              <option value="Creature">Creature 3/3</option>
+              <option value="Instant">Burn 3 Dmg</option>
+              <option value="Land">Land</option>
+            </select>
+            <button class="btn-gold" onclick="addCustomCardToDeck()">Add</button>
+          </div>
+        </div>
+        <button class="btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal()">Close Binder</button>
+      `;
+      document.getElementById("modal-backdrop").classList.remove("hidden");
+    }
+
+    function moveBinderCardToDeck(idx) {
+      const card = userProfile.binderExtras.splice(idx, 1)[0];
+      if (!card) return;
+      getSelectedDeck().cards.push({ ...card, qty: 2 });
       saveProfile();
-      renderDeskScene();
-    }
-
-    function inspectDeck(deckId) {
-      const deck = userProfile.decks.find(d => d.id === deckId);
-      if (!deck) return;
-      const box = document.getElementById("modal-content");
-      box.innerHTML = `
-        <h3 style="margin-top:0;">${deck.name} (${deck.format})</h3>
-        ${deck.cards.map(c => `
-          <div style="display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--arena-rim); font-size:13px;">
-            <span><strong>${c.qty}x</strong> ${c.name} <span style="color:var(--muted);">(${c.type})</span></span>
-            <span style="color:var(--gold);">${c.cost ? c.cost + ' Mana' : 'Land'}</span>
-          </div>
-        `).join("")}
-        <button class="btn-gold" style="width:100%; margin-top:14px;" onclick="closeModal()">Done</button>
-      `;
-      document.getElementById("modal-backdrop").classList.remove("hidden");
-    }
-
-    function openDeckBuilderModal() {
-      const box = document.getElementById("modal-content");
-      box.innerHTML = `
-        <h3 style="margin-top:0;">Add Scryfall Card to ${getSelectedDeck().name}</h3>
-        <div class="field"><label>Card Name</label><input type="text" id="new-card-name" placeholder="e.g. Serra Angel or Lightning Bolt" /></div>
-        <div class="field"><label>Mana Cost (Number)</label><input type="number" id="new-card-cost" value="2" min="0" max="12" /></div>
-        <div class="field"><label>Type</label>
-          <select id="new-card-type">
-            <option value="Creature">Creature (3/3)</option>
-            <option value="Instant">Burn Spell (3 Damage)</option>
-            <option value="Land">Land</option>
-          </select>
-        </div>
-        <button class="btn-gold" style="width:100%;" onclick="addCustomCardToDeck()">Add 2 Copies to Deck</button>
-      `;
-      document.getElementById("modal-backdrop").classList.remove("hidden");
+      openBinderModal();
     }
 
     function addCustomCardToDeck() {
       const name = document.getElementById("new-card-name").value.trim();
       if (!name) return;
-      const cost = parseInt(document.getElementById("new-card-cost").value || "2", 10);
       const kind = document.getElementById("new-card-type").value;
-      const deck = getSelectedDeck();
       const cardObj = kind === "Land"
         ? { name, type: "Land", cost: 0, text: "Tap: Add Mana.", isLand: true, qty: 2 }
         : kind === "Instant"
-          ? { name, type: "Instant", cost, damage: 3, text: "Deal 3 damage to opponent.", qty: 2 }
-          : { name, type: "Creature", cost, power: 3, toughness: 3, text: "", qty: 2 };
-      deck.cards.push(cardObj);
+          ? { name, type: "Instant", cost: 2, damage: 3, text: "Deal 3 damage to opponent.", qty: 2 }
+          : { name, type: "Creature", cost: 3, power: 3, toughness: 3, text: "", qty: 2 };
+      getSelectedDeck().cards.push(cardObj);
       ensureCardArt(name);
       saveProfile();
-      closeModal();
-      renderDeskScene();
+      openBinderModal();
+    }
+
+    function openDeckBoxModal() {
+      const box = document.getElementById("modal-content");
+      box.innerHTML = `
+        <h3 style="margin-top:0; color:var(--cyan);">🃏 Deck Boxes on Desk</h3>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+          ${userProfile.decks.map(d => {
+            const sel = d.id === userProfile.selectedDeckId;
+            return `
+              <div style="background:#0b1018; border:1px solid ${sel ? 'var(--gold)' : 'var(--arena-rim)'}; border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:center;">
+                <div><strong>${sel ? '★ ' : ''}${d.name}</strong><div style="font-size:11px; color:var(--muted);">${d.format}</div></div>
+                <button class="btn-ghost" onclick="userProfile.selectedDeckId='${d.id}'; saveProfile(); openDeckBoxModal();">${sel ? 'Equipped' : 'Equip'}</button>
+              </div>
+            `;
+          }).join("")}
+        </div>
+        <button class="btn-cyan" style="width:100%;" onclick="closeModal(); startCasualDeskGame();">🎴 Test Active Deck on Playmat</button>
+      `;
+      document.getElementById("modal-backdrop").classList.remove("hidden");
+    }
+
+    function openMailboxModal() {
+      const box = document.getElementById("modal-content");
+      if (userProfile.hasMail) {
+        userProfile.gold += 100;
+        userProfile.hasMail = false;
+        saveProfile();
+        box.innerHTML = `
+          <h3 style="margin-top:0; color:var(--gold);">📬 Package Received!</h3>
+          <p style="font-size:14px;">Your daily Planeswalker stipend arrived at your desk:</p>
+          <div style="background:#0b1018; border:1px solid var(--gold); border-radius:12px; padding:14px; text-align:center; font-size:18px; font-weight:900; color:var(--gold);">
+            +100 Gold Coins
+          </div>
+          <button class="btn-gold" style="width:100%; margin-top:14px;" onclick="closeModal()">Awesome</button>
+        `;
+      } else {
+        box.innerHTML = `
+          <h3 style="margin-top:0;">📬 Desk Mailbox</h3>
+          <p style="font-size:13px; color:var(--muted);">No new packages right now. Win store tournaments or check back later for deliveries!</p>
+          <button class="btn-ghost" style="width:100%;" onclick="closeModal()">Close</button>
+        `;
+      }
+      document.getElementById("modal-backdrop").classList.remove("hidden");
+    }
+
+    function openRankingsModal(scope = "state") {
+      const combined = [
+        ...NPC_LEADERBOARD,
+        { name: userProfile.name + " (You)", state: userProfile.state, rp: userProfile.rp, isMe: true }
+      ]
+        .filter(p => scope === "national" || p.state === userProfile.state)
+        .sort((a, b) => b.rp - a.rp);
+
+      const box = document.getElementById("modal-content");
+      box.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 style="margin:0; color:var(--gold);">🏆 ${scope === 'state' ? userProfile.state + ' State' : 'Nationwide USA'} Ladder</h3>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-ghost" onclick="openRankingsModal('state')">State</button>
+            <button class="btn-ghost" onclick="openRankingsModal('national')">USA</button>
+          </div>
+        </div>
+        <div style="margin-bottom:10px; font-size:12px; color:var(--muted);">
+          Home State:
+          <select onchange="userProfile.state=this.value; saveProfile(); openRankingsModal('${scope}');" style="background:#0b1018; color:#fff; border:1px solid var(--arena-rim); border-radius:6px; padding:4px;">
+            ${["FL","GA","AL","TX","CA","NY","WA"].map(s => `<option value="${s}" ${userProfile.state===s?'selected':''}>${s}</option>`).join("")}
+          </select>
+        </div>
+        ${combined.map((p, i) => `
+          <div style="display:flex; justify-content:space-between; padding:8px 10px; margin-bottom:6px; border-radius:10px; background:${p.isMe ? 'rgba(56,189,248,0.16)' : '#0b1018'}; border:1px solid ${p.isMe ? 'var(--cyan)' : 'var(--arena-rim)'}; font-size:13px;">
+            <span><strong>#${i + 1}</strong> ${p.name} <span style="color:var(--muted);">[${p.state}]</span></span>
+            <strong style="color:var(--gold);">${p.rp} RP</strong>
+          </div>
+        `).join("")}
+        <button class="btn-gold" style="width:100%; margin-top:10px;" onclick="closeModal()">Close</button>
+      `;
+      document.getElementById("modal-backdrop").classList.remove("hidden");
+    }
+
+    function openTravelModal() {
+      const box = document.getElementById("modal-content");
+      box.innerHTML = `
+        <h3 style="margin-top:0; color:var(--emerald);">🚗 Choose a Local Game Store</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          ${STORES.map((st, idx) => `
+            <div style="background:#0b1018; border:1px solid var(--arena-rim); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-weight:800; font-size:14px;">${st.name}</div>
+                <div style="font-size:11px; color:var(--muted);">${st.city} • ${st.events.length} Scheduled Event(s)</div>
+              </div>
+              <button class="btn-gold" onclick="closeModal(); travelToStore(${idx});">Travel →</button>
+            </div>
+          `).join("")}
+        </div>
+      `;
+      document.getElementById("modal-backdrop").classList.remove("hidden");
     }
 
     function travelToStore(idx) {
       selectedStoreIdx = idx;
-      document.getElementById("store-selector").value = String(idx);
       goScene("store");
     }
 
-    function selectStore(val) {
-      selectedStoreIdx = parseInt(val, 10);
-      renderStoreScene();
-    }
-
-    function renderStoreScene() {
+    /* =========================================
+       STORE OBJECT MODALS
+       ========================================= */
+    function openStoreTournamentModal() {
       const store = STORES[selectedStoreIdx] || STORES[0];
-      document.getElementById("store-venue-name").textContent = `${store.name} • ${store.city}`;
-
-      const badge = document.getElementById("active-run-badge");
-      if (userProfile.activeTourney) {
-        badge.classList.remove("hidden");
-        badge.textContent = `Active Run: ${userProfile.activeTourney.title} (Round ${userProfile.activeTourney.round}/${userProfile.activeTourney.maxRounds} • ${userProfile.activeTourney.wins}W)`;
-      } else {
-        badge.classList.add("hidden");
-      }
-
-      document.getElementById("store-events-list").innerHTML = store.events.map(ev => {
-        const isCurrent = userProfile.activeTourney && userProfile.activeTourney.eventId === ev.id;
-        return `
-          <div class="tourney-card">
-            <div>
-              <div style="font-weight:900; font-size:15px;">${ev.title}</div>
-              <div style="font-size:12px; color:var(--muted); margin:3px 0;">${ev.time} • ${ev.rounds}-Round Event</div>
-              <div style="font-size:12px; color:var(--emerald);">1st Place: <strong>${ev.prizeGold} Gold</strong> + <strong>${ev.prizeRP} State/USA RP</strong></div>
-            </div>
-            <button class="btn-gold" onclick="enterOrContinueTournament('${ev.id}')">
-              ${isCurrent ? `Play Round ${userProfile.activeTourney.round}` : `Enter (${ev.fee}g)`}
-            </button>
-          </div>
-        `;
-      }).join("");
+      const box = document.getElementById("modal-content");
+      box.innerHTML = `
+        <h3 style="margin-top:0; color:var(--gold);">🏆 ${store.name} — Events</h3>
+        <p style="font-size:12px; color:var(--muted);">Your Gold: <strong>${userProfile.gold}g</strong> • Active Deck: <strong>${getSelectedDeck().name}</strong></p>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          ${store.events.map(ev => {
+            const isCur = userProfile.activeTourney && userProfile.activeTourney.eventId === ev.id;
+            return `
+              <div style="background:#0b1018; border:1px solid var(--arena-rim); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                <div>
+                  <div style="font-weight:800; font-size:14px;">${ev.title}</div>
+                  <div style="font-size:11px; color:var(--muted);">${ev.rounds}-Round Swiss • ${ev.time}</div>
+                  <div style="font-size:11px; color:var(--emerald);">1st Prize: ${ev.prizeGold}g + ${ev.prizeRP} RP</div>
+                </div>
+                <button class="btn-gold" onclick="closeModal(); enterOrContinueTournament('${ev.id}');">
+                  ${isCur ? `Round ${userProfile.activeTourney.round}` : `Enter (${ev.fee}g)`}
+                </button>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+      document.getElementById("modal-backdrop").classList.remove("hidden");
     }
 
+    function openBoosterShopModal() {
+      const box = document.getElementById("modal-content");
+      box.innerHTML = `
+        <h3 style="margin-top:0; color:var(--cyan);">💎 Store Booster Counter</h3>
+        <p style="font-size:13px; color:var(--muted);">Crack a 3-card MTG Booster Pack for <strong>100 Gold</strong> and send the cards straight to your Home Desk Binder! (Balance: <strong>${userProfile.gold}g</strong>)</p>
+        <div id="pack-pull-area" style="margin:12px 0;"></div>
+        <button class="btn-gold" style="width:100%;" onclick="buyBoosterPack()">✨ Buy & Open Pack (100g)</button>
+      `;
+      document.getElementById("modal-backdrop").classList.remove("hidden");
+    }
+
+    function buyBoosterPack() {
+      if (userProfile.gold < 100) {
+        document.getElementById("pack-pull-area").innerHTML = `<div style="color:var(--crimson); font-size:13px;">Not enough Gold! Win a tournament or check your Home Desk mailbox.</div>`;
+        return;
+      }
+      userProfile.gold -= 100;
+      const pulls = [];
+      for (let i = 0; i < 3; i++) {
+        const card = { ...BOOSTER_POOL[Math.floor(Math.random() * BOOSTER_POOL.length)] };
+        ensureCardArt(card.name);
+        userProfile.binderExtras.push(card);
+        pulls.push(card);
+      }
+      saveProfile();
+      document.getElementById("pack-pull-area").innerHTML = `
+        <div style="background:#0b1018; border:1px solid var(--gold); border-radius:12px; padding:12px;">
+          <div style="font-size:11px; color:var(--gold); font-weight:800; margin-bottom:6px;">PULLED CARDS (SENT TO BINDER):</div>
+          ${pulls.map(c => `<div style="font-size:13px; padding:3px 0;">✦ <strong>${c.name}</strong> — <span style="color:var(--muted);">${c.text || c.type}</span></div>`).join("")}
+        </div>
+      `;
+    }
+
+    function openMultiplayerTablesModal() {
+      const box = document.getElementById("modal-content");
+      box.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 style="margin:0; color:var(--emerald);">🌐 Store Multiplayer Tables</h3>
+          <button class="btn-gold" onclick="closeModal(); createLiveRoom();">+ Host Table</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          ${cachedRooms.map(r => `
+            <div style="background:#0b1018; border:1px solid var(--arena-rim); border-radius:12px; padding:11px; display:flex; justify-content:space-between; align-items:center;">
+              <div><strong style="color:var(--gold);">${r.code}</strong><div style="font-size:11px; color:var(--muted);">Host: ${r.host_name} • Guest: ${r.guest_name || 'Open'}</div></div>
+              <button class="btn-cyan" onclick="closeModal(); joinLiveRoom('${r.code}');">Join</button>
+            </div>
+          `).join("") || `<p style="color:var(--muted); font-size:13px;">No open rooms yet—tap <strong>+ Host Table</strong> to start one!</p>`}
+        </div>
+      `;
+      document.getElementById("modal-backdrop").classList.remove("hidden");
+    }
+
+    /* =========================================
+       TOURNAMENTS, MULTIPLAYER & ARENA GAMEPLAY
+       ========================================= */
     function enterOrContinueTournament(eventId) {
       const store = STORES[selectedStoreIdx];
       const ev = store.events.find(e => e.id === eventId);
       if (!ev) return;
 
       if (!userProfile.activeTourney || userProfile.activeTourney.eventId !== ev.id) {
-        if (userProfile.gold < ev.fee) {
-          alert(`Not enough Gold! Need ${ev.fee}g (claim +100g Daily on your Home Desk).`);
-          return;
-        }
+        if (userProfile.gold < ev.fee) { alert(`Need ${ev.fee}g to enter!`); return; }
         userProfile.gold -= ev.fee;
         userProfile.activeTourney = {
           eventId: ev.id, title: ev.title, storeName: store.name,
-          round: 1, maxRounds: ev.rounds, wins: 0,
-          prizeGold: ev.prizeGold, prizeRP: ev.prizeRP
+          round: 1, maxRounds: ev.rounds, wins: 0, prizeGold: ev.prizeGold, prizeRP: ev.prizeRP
         };
         saveProfile();
       }
@@ -902,27 +1224,18 @@
     function startCasualDeskGame() {
       liveRoomCode = null;
       game = createGameStateFromDeck(userProfile.name, "Desk Practice Bot", getSelectedDeck());
-      document.getElementById("match-context-pill").textContent = "Home Desk Practice";
+      document.getElementById("match-context-pill").textContent = "Home Desk Playmat Test";
       goScene("arena");
       renderBoard();
     }
 
-    // LIVE MULTIPLAYER ROOMS AT STORE
     async function loadLobby() {
       if (!sb || !userProfile.id) return;
       const refresh = async () => {
         const { data } = await sb.from("rooms").select("*").order("updated_at", { ascending: false }).limit(20);
-        const el = document.getElementById("store-room-list");
-        if (!el) return;
-        el.innerHTML = (data || []).map(r => `
-          <div class="room-card">
-            <div>
-              <strong style="color:var(--gold);">${r.code}</strong>
-              <div style="font-size:11px; color:var(--muted);">Host: ${r.host_name} • Guest: ${r.guest_name || "Open Seat"}</div>
-            </div>
-            <button class="btn-ghost" onclick="joinLiveRoom('${r.code}')">Sit Down</button>
-          </div>
-        `).join("") || `<div style="color:var(--muted); font-size:12px; text-align:center; padding:18px;">No open player tables yet. Tap <strong>+ Host Table</strong>.</div>`;
+        cachedRooms = data || [];
+        const badge = document.getElementById("live-tables-count");
+        if (badge) badge.textContent = `${cachedRooms.length} Live Pod(s)`;
       };
       refresh();
       sb.channel("lobby-sync").on("postgres_changes", { event: "*", schema: "public", table: "rooms" }, refresh).subscribe();
@@ -973,7 +1286,6 @@
       await sb.from("rooms").update({ state: game, updated_at: new Date().toISOString() }).eq("code", liveRoomCode);
     }
 
-    // ARENA GAME ENGINE
     function expandDeckList(deckObj) {
       const flat = [];
       deckObj.cards.forEach((c, idx) => {
@@ -1004,11 +1316,7 @@
       el.style.top = isTopTarget ? "58px" : "calc(100dvh - 175px)";
       el.textContent = (isHeal ? "+" : "-") + amount;
       layer.appendChild(el);
-      if (!isHeal) {
-        board.classList.remove("shake");
-        void board.offsetWidth;
-        board.classList.add("shake");
-      }
+      if (!isHeal) { board.classList.remove("shake"); void board.offsetWidth; board.classList.add("shake"); }
       setTimeout(() => el.remove(), 1100);
     }
 
@@ -1038,7 +1346,7 @@
           addLog(`Summoned ${card.name} (${card.power}/${card.toughness}).`);
         } else {
           if (card.damage) { foe.life -= card.damage; triggerVFX(card.damage, false, true); addLog(`${card.name} hit for ${card.damage}!`); }
-          else if (card.heal) { me.life += card.heal; triggerVFX(card.heal, true, false); addLog(`${card.name} healed ${card.heal}.`); }
+          if (card.heal) { me.life += card.heal; triggerVFX(card.heal, true, false); addLog(`${card.name} healed ${card.heal}.`); }
           me.gy.push(card);
         }
       }
@@ -1120,11 +1428,7 @@
         const won = (isRoomHost && game.opp.life <= 0) || (!isRoomHost && game.human.life <= 0);
         let summary = won ? "Victory! +25 Gold & +15 Ranking Points." : "Defeat!";
 
-        if (won) {
-          userProfile.wins++;
-          userProfile.gold += 25;
-          userProfile.rp += 15;
-        }
+        if (won) { userProfile.wins++; userProfile.gold += 25; userProfile.rp += 15; }
 
         if (userProfile.activeTourney) {
           const t = userProfile.activeTourney;
@@ -1138,7 +1442,7 @@
             userProfile.activeTourney = null;
           } else {
             t.round++;
-            summary += ` Next up: Tournament Round ${t.round} at ${t.storeName}.`;
+            summary += ` Next up: Round ${t.round} at ${t.storeName}.`;
           }
         }
 
@@ -1150,7 +1454,7 @@
           <p style="font-size:13px; color:var(--muted);">Updated Totals: 🪙 ${userProfile.gold} Gold • 🏅 ${userProfile.rp} RP (${userProfile.state})</p>
           <div style="display:flex; gap:10px; margin-top:16px;">
             <button class="btn-gold" style="flex:1;" onclick="closeModal(); goScene('store');">Return to Store</button>
-            <button class="btn-ghost" style="flex:1;" onclick="closeModal(); goScene('desk');">Return to Home Desk</button>
+            <button class="btn-ghost" style="flex:1;" onclick="closeModal(); goScene('desk');">Drive Home to Desk</button>
           </div>
         `;
         document.getElementById("modal-backdrop").classList.remove("hidden");
@@ -1273,7 +1577,7 @@
           <h3 style="margin-top:0;">Match Options</h3>
           <div style="display:flex; flex-direction:column; gap:10px;">
             <button class="btn-ghost" onclick="closeModal(); goScene('store');">🏪 Leave to Local Game Store</button>
-            <button class="btn-gold" onclick="closeModal(); goScene('desk');">🪵 Leave to Home Desk</button>
+            <button class="btn-gold" onclick="closeModal(); goScene('desk');">🪵 Drive Home to Desk</button>
           </div>
         `;
       }
